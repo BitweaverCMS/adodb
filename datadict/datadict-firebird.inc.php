@@ -69,7 +69,7 @@ class ADODB2_firebird extends ADODB_DataDict {
 		if ( !preg_match('/^[' . $this->nameRegex . ']+$/', $name) ) {
 			return $quote . $name . $quote;
 		}
-vd($name);		
+
 		return $quote . $name . $quote;
 	}
 
