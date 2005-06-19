@@ -474,6 +474,24 @@ class ADODB_ibase extends ADOConnection {
 				break;
 		} // switch
 	}
+
+	function &MetaTables($ttype=false,$showSchema=false,$mask=false) 
+	{	
+		$save = $this->metaTablesSQL;
+		if ($showSchema) {
+			return false;
+		}
+		
+		if ($mask) {
+			$mask = $this->qstr($mask);
+			$this->metaTablesSQL = "select rdb\$relation_name from rdb\$relations where rdb\$relation_name like $mask AND rdb\$relation_name not like 'RDB\$%'";
+		}
+		$ret =& ADOConnection::MetaTables($ttype);
+		
+		$this->metaTablesSQL = $save;
+		return $ret;
+	}
+	
 	//OPN STUFF end
 		// returns array of ADOFieldObjects for current table
 	function &MetaColumns($table) 
