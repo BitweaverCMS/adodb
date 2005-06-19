@@ -1,7 +1,7 @@
 <?php
 
 /**
-  V4.63 17 May 2005  (c) 2000-2005 John Lim (jlim@natsoft.com.my). All rights reserved.
+  V4.22 15 Apr 2004  (c) 2000-2004 John Lim (jlim@natsoft.com.my). All rights reserved.
   Released under both BSD license and Lesser GPL library license. 
   Whenever there is any discrepancy between the two licenses, 
   the BSD license will take precedence.
@@ -14,18 +14,18 @@ class ADODB2_firebird extends ADODB_DataDict {
 	
 	var $databaseType = 'firebird';
 	var $seqField = false;
-	var $seqPrefix = 'gen_';
+	var $seqPrefix = 's_';
 	var $blobSize = 40000;	
  	
  	function ActualType($meta)
 	{
 		switch($meta) {
 		case 'C': return 'VARCHAR';
-		case 'XL': return 'VARCHAR(32000)'; 
-		case 'X': return 'VARCHAR(4000)'; 
+		case 'XL':
+		case 'X': return 'BLOB SUB_TYPE TEXT'; 
 		
-		case 'C2': return 'VARCHAR'; // up to 32K
-		case 'X2': return 'VARCHAR(4000)';
+		case 'C2': return 'VARCHAR(32765)'; // up to 32K
+		case 'X2': return 'VARCHAR(4096)';
 		
 		case 'B': return 'BLOB';
 			
@@ -69,7 +69,7 @@ class ADODB2_firebird extends ADODB_DataDict {
 		if ( !preg_match('/^[' . $this->nameRegex . ']+$/', $name) ) {
 			return $quote . $name . $quote;
 		}
-		
+vd($name);		
 		return $quote . $name . $quote;
 	}
 
@@ -80,6 +80,7 @@ class ADODB2_firebird extends ADODB_DataDict {
 		
 		$sql[] = "DECLARE EXTERNAL FUNCTION LOWER CSTRING(80) RETURNS CSTRING(80) FREE_IT ENTRY_POINT 'IB_UDF_lower' MODULE_NAME 'ib_udf'";
 		
+//		ADOConnection::outp("SetupCode1-".$sql[0]);
 		return $sql;
 	}
 	
@@ -87,9 +88,9 @@ class ADODB2_firebird extends ADODB_DataDict {
 	{
 		if (strpos($t,'.') !== false) {
 			$tarr = explode('.',$t);
-			return 'DROP GENERATOR '.$tarr[0].'."gen_'.$tarr[1].'"';
+			return 'DROP GENERATOR '.$tarr[0].'."g_'.$tarr[1].'"';
 		}
-		return 'DROP GENERATOR "GEN_'.$t;
+		return 'DROP GENERATOR "G_'.$t;
 	}
 	
 
@@ -100,6 +101,7 @@ class ADODB2_firebird extends ADODB_DataDict {
 		if (strlen($fdefault)) $suffix .= " DEFAULT $fdefault";
 		if ($fnotnull) $suffix .= ' NOT NULL';
 		if ($fautoinc) $this->seqField = $fname;
+		$fconstraint = preg_replace("/``/", "\"", $fconstraint);
 		if ($fconstraint) $suffix .= ' '.$fconstraint;
 		
 		return $suffix;
@@ -117,6 +119,7 @@ end;
 	function _Triggers($tabname,$tableoptions)
 	{	
 		if (!$this->seqField) return array();
+//		ADOConnection::outp("Trigger".$this->seqField);
 		
 		$tab1 = preg_replace( '/"/', '', $tabname );
 		if ($this->schema) {
@@ -125,11 +128,11 @@ end;
 			else $tab = $tab1;
 			$seqField = $this->seqField;
 			$seqname = $this->schema.'.'.$this->seqPrefix.$tab;
-			$trigname = $this->schema.'.trig_'.$this->seqPrefix.$tab;
+			$trigname = $this->schema.'.t_'.$this->seqPrefix.$tab;
 		} else {
 			$seqField = $this->seqField;
 			$seqname = $this->seqPrefix.$tab1;
-			$trigname = 'trig_'.$seqname;
+			$trigname = 't_'.$seqname;
 		}
 		if (isset($tableoptions['REPLACE']))
 		{ $sql[] = "DROP GENERATOR \"$seqname\"";
@@ -141,6 +144,8 @@ end;
 		  $sql[] = "CREATE TRIGGER \"$trigname\" FOR $tabname BEFORE INSERT OR UPDATE AS BEGIN IF ( NEW.$seqField IS NULL OR NEW.$seqField = 0 ) THEN NEW.$seqField = GEN_ID(\"$seqname\", 1); END";
 		}
 		
+//		ADOConnection::outp("TriggerCode1-".$sql[0]);
+//		ADOConnection::outp("TriggerCode2-".$sql[1]);
 		$this->seqField = false;
 		return $sql;
 	}
