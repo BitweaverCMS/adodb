@@ -35,6 +35,20 @@ class ADODB_firebird extends ADODB_ibase {
 		return $this->_transactionID;
 	}
 	
+	function CommitTrans($ok=true) 
+	{ 
+		if (!$ok) return $this->RollbackTrans();
+		if ($this->transOff) return true;
+		if ($this->transCnt) $this->transCnt -= 1;
+		$ret = false;
+		$this->autoCommit = true;
+		if ($this->_transactionID) {
+			$ret = ibase_commit($this->_transactionID);
+		}
+		$this->_transactionID = false;
+		return $ret;
+	}
+	
 	function ServerInfo()
 	{
 		$arr['dialect'] = $this->dialect;
