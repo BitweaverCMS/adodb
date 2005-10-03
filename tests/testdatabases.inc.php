@@ -1,7 +1,7 @@
 <?php
   
 /*
-V4.63 17 May 2005  (c) 2000-2005 John Lim (jlim@natsoft.com.my). All rights reserved.
+V4.66 28 Sept 2005  (c) 2000-2005 John Lim (jlim@natsoft.com.my). All rights reserved.
   Released under both BSD license and Lesser GPL library license. 
   Whenever there is any discrepancy between the two licenses, 
   the BSD license will take precedence.
@@ -29,6 +29,8 @@ V4.63 17 May 2005  (c) 2000-2005 John Lim (jlim@natsoft.com.my). All rights rese
 <input type=checkbox name="testpdomysql" value=1 <?php echo !empty($testpdomysql) ? 'checked' : '' ?>> <b>MySQL PDO</b><br>
 <input type=checkbox name="testpdosqlite" value=1 <?php echo !empty($testpdosqlite) ? 'checked' : '' ?>> <b>SQLite PDO</b><br>
 <input type=checkbox name="testpdoaccess" value=1 <?php echo !empty($testpdoaccess) ? 'checked' : '' ?>> <b>Access PDO</b><br>
+
+<input type=checkbox name="testpdoora" value=1 <?php echo !empty($testpdoora) ? 'checked' : '' ?>> <b>OCI PDO</b><br>
 
 <td><input type=checkbox name="testdb2" value=1 <?php echo !empty($testdb2) ? 'checked' : '' ?>> DB2<br>
 <input type=checkbox name="testvfp" value=1 <?php echo !empty($testvfp) ? 'checked' : '' ?>> VFP+ODBTP<br>
@@ -117,7 +119,6 @@ if (!empty($testpdopgsql)) {
 	$connstr = "pgsql:dbname=test";
 	$u = 'tester';$p='test';
 	$db = &ADONewConnection('pdo');
-	$db->hasTransactions = false;
 	print "<h1>Connecting $db->databaseType...</h1>";
 	$db->Connect($connstr,$u,$p) || die("CONNECT FAILED");
 	testdb($db,
@@ -128,9 +129,9 @@ if (!empty($testpdomysql)) {
 	$connstr = "mysql:dbname=northwind";
 	$u = 'root';$p='';
 	$db = &ADONewConnection('pdo');
-	$db->hasTransactions = false;
 	print "<h1>Connecting $db->databaseType...</h1>";
 	$db->Connect($connstr,$u,$p) || die("CONNECT FAILED");
+	
 	testdb($db,
 		"create table ADOXYZ (id int, firstname char(24), lastname char(24), created date)");
 }
@@ -151,6 +152,17 @@ if (!empty($testpdoaccess)) {
 	$u = '';$p='';
 	$db = &ADONewConnection('pdo');
 	$db->hasTransactions = false;
+	print "<h1>Connecting $db->databaseType...</h1>";
+	$db->Connect($connstr,$u,$p) || die("CONNECT FAILED");
+	testdb($db,
+		"create table ADOXYZ (id int, firstname char(24), lastname char(24), created date)");
+}
+
+if (!empty($testpdoora)) {
+	$connstr = 'oci:';
+	$u = 'scott';$p='natsoft';
+	$db = &ADONewConnection('pdo');
+	#$db->hasTransactions = false;
 	print "<h1>Connecting $db->databaseType...</h1>";
 	$db->Connect($connstr,$u,$p) || die("CONNECT FAILED");
 	testdb($db,

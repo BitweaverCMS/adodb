@@ -1,6 +1,6 @@
 <?php
 /*
-V4.63 17 May 2005  (c) 2000-2005 John Lim (jlim@natsoft.com.my). All rights reserved.
+V4.66 28 Sept 2005  (c) 2000-2005 John Lim (jlim@natsoft.com.my). All rights reserved.
   Released under both BSD license and Lesser GPL library license. 
   Whenever there is any discrepancy between the two licenses, 
   the BSD license will take precedence.
@@ -20,7 +20,8 @@ wrapper library.
 	session_start();
 	session_register('AVAR');
 	$_SESSION['AVAR'] += 1;
-	print "<p>\$_SESSION['AVAR']={$_SESSION['AVAR']}</p>";
+	print "
+-- \$_SESSION['AVAR']={$_SESSION['AVAR']}</p>";
 	
 To force non-persistent connections, call adodb_session_open first before session_start():
 
@@ -30,7 +31,8 @@ To force non-persistent connections, call adodb_session_open first before sessio
 	session_start();
 	session_register('AVAR');
 	$_SESSION['AVAR'] += 1;
-	print "<p>\$_SESSION['AVAR']={$_SESSION['AVAR']}</p>";
+	print "
+-- \$_SESSION['AVAR']={$_SESSION['AVAR']}</p>";
 
  
  Installation
@@ -222,7 +224,8 @@ GLOBAL 	$ADODB_SESSION_CONNECT,
 	else $ok = $ADODB_SESS_CONN->Connect($ADODB_SESSION_CONNECT,
 			$ADODB_SESSION_USER,$ADODB_SESSION_PWD,$ADODB_SESSION_DB);
 	
-	if (!$ok) ADOConnection::outp( "<p>Session: connection failed</p>",false);
+	if (!$ok) ADOConnection::outp( "
+-- Session: connection failed</p>",false);
 }
 
 /****************************************************************************************\
@@ -281,7 +284,8 @@ function adodb_sess_write($key, $val)
 	// crc32 optimization since adodb 2.1
 	// now we only update expiry date, thx to sebastian thom in adodb 2.32
 	if ($ADODB_SESSION_CRC !== false && $ADODB_SESSION_CRC == strlen($val).crc32($val)) {
-		if ($ADODB_SESS_DEBUG) echo "<p>Session: Only updating date - crc32 not changed</p>";
+		if ($ADODB_SESS_DEBUG) echo "
+-- Session: Only updating date - crc32 not changed</p>";
 		$qry = "UPDATE $ADODB_SESSION_TBL SET expiry=$expiry WHERE sesskey='$key' AND expiry >= " . time();
 		$rs = $ADODB_SESS_CONN->Execute($qry);	
 		return true;
@@ -298,7 +302,8 @@ function adodb_sess_write($key, $val)
     	'sesskey',$autoQuote = true);
 	
 	if (!$rs) {
-		ADOConnection::outp( '<p>Session Replace: '.$ADODB_SESS_CONN->ErrorMsg().'</p>',false);
+		ADOConnection::outp( '
+-- Session Replace: '.$ADODB_SESS_CONN->ErrorMsg().'</p>',false);
 	}  else {
 		// bug in access driver (could be odbc?) means that info is not commited
 		// properly unless select statement executed in Win2000
@@ -365,7 +370,8 @@ function adodb_sess_gc($maxlifetime)
 		$qry = "DELETE FROM $ADODB_SESSION_TBL WHERE expiry < " . time();
 		$ADODB_SESS_CONN->Execute($qry);
 	
-		if ($ADODB_SESS_DEBUG) ADOConnection::outp("<p><b>Garbage Collection</b>: $qry</p>");
+		if ($ADODB_SESS_DEBUG) ADOConnection::outp("
+-- <b>Garbage Collection</b>: $qry</p>");
 	}
 	// suggested by Cameron, "GaM3R" <gamr@outworld.cx>
 	if (defined('ADODB_SESSION_OPTIMIZE')) {
@@ -401,7 +407,8 @@ function adodb_sess_gc($maxlifetime)
 			$msg = 
 			__FILE__.": Server time for webserver {$_SERVER['HTTP_HOST']} not in synch with database: database=$dbt ($dbts), webserver=$t (diff=".(abs($dbt-$t)/3600)." hrs)";
 			error_log($msg);
-			if ($ADODB_SESS_DEBUG) ADOConnection::outp("<p>$msg</p>");
+			if ($ADODB_SESS_DEBUG) ADOConnection::outp("
+-- $msg</p>");
 		}
 	}
 	
@@ -425,7 +432,8 @@ if (0) {
 	session_start();
 	session_register('AVAR');
 	$_SESSION['AVAR'] += 1;
-	ADOConnection::outp( "<p>\$_SESSION['AVAR']={$_SESSION['AVAR']}</p>",false);
+	ADOConnection::outp( "
+-- \$_SESSION['AVAR']={$_SESSION['AVAR']}</p>",false);
 }
 
 ?>

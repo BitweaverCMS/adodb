@@ -7,7 +7,7 @@ global $ADODB_INCLUDED_LIB;
 $ADODB_INCLUDED_LIB = 1;
 
 /* 
- @version V4.63 17 May 2005 (c) 2000-2005 John Lim (jlim\@natsoft.com.my). All rights reserved.
+ @version V4.66 28 Sept 2005 (c) 2000-2005 John Lim (jlim\@natsoft.com.my). All rights reserved.
   Released under both BSD license and Lesser GPL library license. 
   Whenever there is any discrepancy between the two licenses, 
   the BSD license will take precedence. See License.txt. 
@@ -133,7 +133,7 @@ function _adodb_getmenu(&$zthis, $name,$defstr='',$blank1stItem=true,$multiple=f
 	$value = '';
     $optgroup = null;
     $firstgroup = true;
-    $fieldsize = sizeof($zthis->fields);
+    $fieldsize = $zthis->FieldCount();
 	while(!$zthis->EOF) {
 		$zval = rtrim(reset($zthis->fields));
 
@@ -237,7 +237,7 @@ function _adodb_getmenu_gp(&$zthis, $name,$defstr='',$blank1stItem=true,$multipl
 		$selected = ($compareFields0) ? $zval : $zval2;
 		
         $group = '';
-		if ($fieldsize > 2) {
+		if (isset($zthis->fields[2])) {
             $group = rtrim($zthis->fields[2]);
         }
  
@@ -283,13 +283,15 @@ function _adodb_getmenu_gp(&$zthis, $name,$defstr='',$blank1stItem=true,$multipl
 	Count the number of records this sql statement will return by using
 	query rewriting techniques...
 	
-	Does not work with UNIONs.
+	Does not work with UNIONs, except with postgresql and oracle.
 */
 function _adodb_getcount(&$zthis, $sql,$inputarr=false,$secs2cache=0) 
 {
 	$qryRecs = 0;
 	
-	 if (preg_match("/^\s*SELECT\s+DISTINCT/is", $sql) || preg_match('/\s+GROUP\s+BY\s+/is',$sql)) {
+	 if (preg_match("/^\s*SELECT\s+DISTINCT/is", $sql) || 
+	 	preg_match('/\s+GROUP\s+BY\s+/is',$sql) || 
+		preg_match('/\s+UNION\s+/is',$sql)) {
 		// ok, has SELECT DISTINCT or GROUP BY so see if we can use a table alias
 		// but this is only supported by oracle and postgresql...
 		if ($zthis->dataProvider == 'oci8') {
@@ -302,23 +304,22 @@ function _adodb_getcount(&$zthis, $sql,$inputarr=false,$secs2cache=0)
 			} else
 				$rewritesql = "SELECT COUNT(*) FROM (".$rewritesql.")"; 
 			
-		} else if ( $zthis->databaseType == 'postgres' || $zthis->databaseType == 'postgres7')  {
+		} else if (strncmp($zthis->databaseType,'postgres',8) == 0)  {
 			
 			$info = $zthis->ServerInfo();
 			if (substr($info['version'],0,3) >= 7.1) { // good till version 999
-				$rewritesql = preg_replace('/(\sORDER\s+BY\s.*)/is','',$sql);
+				$rewritesql = preg_replace('/(\sORDER\s+BY\s[^)]*)/is','',$sql);
 				$rewritesql = "SELECT COUNT(*) FROM ($rewritesql) _ADODB_ALIAS_";
 			}
 		}
-	} else { 
+	} else {
 		// now replace SELECT ... FROM with SELECT COUNT(*) FROM
-		
 		$rewritesql = preg_replace(
 					'/^\s*SELECT\s.*\s+FROM\s/Uis','SELECT COUNT(*) FROM ',$sql);
-		
+
 		// fix by alexander zhukov, alex#unipack.ru, because count(*) and 'order by' fails 
 		// with mssql, access and postgresql. Also a good speedup optimization - skips sorting!
-		$rewritesql = preg_replace('/(\sORDER\s+BY\s.*)/is','',$rewritesql); 
+		$rewritesql = preg_replace('/(\sORDER\s+BY\s[^)]*)/is','',$rewritesql);
 	}
 	
 	if (isset($rewritesql) && $rewritesql != $sql) {
@@ -335,11 +336,14 @@ function _adodb_getcount(&$zthis, $sql,$inputarr=false,$secs2cache=0)
 	//--------------------------------------------
 	// query rewrite failed - so try slower way...
 	
+	
 	// strip off unneeded ORDER BY if no UNION
 	if (preg_match('/\s*UNION\s*/is', $sql)) $rewritesql = $sql;
 	else $rewritesql = preg_replace('/(\sORDER\s+BY\s.*)/is','',$sql); 
 	
 	$rstest = &$zthis->Execute($rewritesql,$inputarr);
+	if (!$rstest) $rstest = $zthis->Execute($sql,$inputarr);
+	
 	if ($rstest) {
 	  		$qryRecs = $rstest->RecordCount();
 		if ($qryRecs == -1) { 
@@ -366,7 +370,7 @@ function _adodb_getcount(&$zthis, $sql,$inputarr=false,$secs2cache=0)
 /*
  	Code originally from "Cornel G" <conyg@fx.ro>
 
-	This code will not work with SQL that has UNION in it	
+	This code might not work with SQL that has UNION in it	
 	
 	Also if you are using CachePageExecute(), there is a strong possibility that
 	data will get out of synch. use CachePageExecute() only with tables that
@@ -580,8 +584,10 @@ function _adodb_getupdatesql(&$zthis,&$rs, $arrFields,$forceUpdate=false,$magicq
 		if ($fieldUpdatedCount > 0 || $forceUpdate) {
 					// Get the table name from the existing query.
 			if (!empty($rs->tableName)) $tableName = $rs->tableName;
-			else preg_match("/FROM\s+".ADODB_TABLE_REGEX."/is", $rs->sql, $tableName);
-	
+			else {
+				preg_match("/FROM\s+".ADODB_TABLE_REGEX."/is", $rs->sql, $tableName);
+				$tableName = $tableName[1];
+			}
 			// Get the full where clause excluding the word "WHERE" from
 			// the existing query.
 			preg_match('/\sWHERE\s(.*)/is', $rs->sql, $whereClause);
@@ -598,11 +604,11 @@ function _adodb_getupdatesql(&$zthis,&$rs, $arrFields,$forceUpdate=false,$magicq
 			if ($discard)
 				$whereClause[1] = substr($whereClause[1], 0, strlen($whereClause[1]) - strlen($discard[1]));
 			
-		$sql = 'UPDATE '.$tableName[1].' SET '.substr($setFields, 0, -2);
-		if (strlen($whereClause[1]) > 0) 
-			$sql .= ' WHERE '.$whereClause[1];
+			$sql = 'UPDATE '.$tableName.' SET '.substr($setFields, 0, -2);
+			if (strlen($whereClause[1]) > 0) 
+				$sql .= ' WHERE '.$whereClause[1];
 
-		return $sql;
+			return $sql;
 
 		} else {
 			return false;
@@ -651,7 +657,7 @@ static $cacheCols;
 		//because we have to call MetaType.
 		//php can't do a $rsclass::MetaType()
 		$rsclass = $zthis->rsPrefix.$zthis->databaseType;
-		$recordSet =& new $rsclass(-1,$zthis->fetchMode);
+		$recordSet = new $rsclass(-1,$zthis->fetchMode);
 		$recordSet->connection = &$zthis;
 		
 		if (is_string($cacheRS) && $cacheRS == $rs) {
@@ -894,7 +900,6 @@ function _adodb_column_sql(&$zthis, $action, $type, $fname, $fnameq, $arrFields,
 
 function _adodb_debug_execute(&$zthis, $sql, $inputarr)
 {
-
 	$ss = '';
 	if ($inputarr) {
 		foreach($inputarr as $kk=>$vv) {
@@ -903,8 +908,11 @@ function _adodb_debug_execute(&$zthis, $sql, $inputarr)
 		}
 		$ss = "[ $ss ]";
 	}
-	$sqlTxt = str_replace(',',', ',is_array($sql) ? $sql[0] : $sql);
-
+	$sqlTxt = is_array($sql) ? $sql[0] : $sql;
+	/*str_replace(', ','##1#__^LF',is_array($sql) ? $sql[0] : $sql);
+	$sqlTxt = str_replace(',',', ',$sqlTxt);
+	$sqlTxt = str_replace('##1#__^LF', ', ' ,$sqlTxt);
+	*/
 	// check if running from browser or command-line
 	$inBrowser = isset($_SERVER['HTTP_USER_AGENT']);
 	
@@ -939,10 +947,10 @@ function _adodb_debug_execute(&$zthis, $sql, $inputarr)
 	return $qID;
 }
 
-
+# pretty print the debug_backtrace function
 function _adodb_backtrace($printOrArr=true,$levels=9999,$skippy=0)
 {
-	if (PHPVERSION() < 4.3) return '';
+	if (!function_exists('debug_backtrace')) return '';
 	 
 	$html =  (isset($_SERVER['HTTP_USER_AGENT']));
 	$fmt =  ($html) ? "</font><font color=#808080 size=-1> %% line %4d, file: <a href=\"file:/%s\">%s</a></font>" : "%% line %4d, file: %s";

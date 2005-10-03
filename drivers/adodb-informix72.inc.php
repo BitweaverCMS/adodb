@@ -1,6 +1,6 @@
 <?php
 /*
-V4.63 17 May 2005  (c) 2000-2005 John Lim. All rights reserved.
+V4.66 28 Sept 2005  (c) 2000-2005 John Lim. All rights reserved.
   Released under both BSD license and Lesser GPL library license.
   Whenever there is any discrepancy between the two licenses,
   the BSD license will take precedence.
@@ -151,6 +151,7 @@ class ADODB_informix72 extends ADOConnection {
 	{
 	global $ADODB_FETCH_MODE;
 	
+		$false = false;
 		if (!empty($this->metaColumnsSQL)) {
 			$save = $ADODB_FETCH_MODE;
 			$ADODB_FETCH_MODE = ADODB_FETCH_NUM;
@@ -158,7 +159,7 @@ class ADODB_informix72 extends ADOConnection {
           		$rs = $this->Execute(sprintf($this->metaColumnsSQL,$table));
 			if (isset($savem)) $this->SetFetchMode($savem);
 			$ADODB_FETCH_MODE = $save;
-			if ($rs === false) return false;
+			if ($rs === false) return $false;
 			$rspkey = $this->Execute(sprintf($this->metaPrimaryKeySQL,$table)); //Added to get primary key colno items
 
 			$retarr = array();
@@ -195,7 +196,7 @@ class ADODB_informix72 extends ADOConnection {
 			return $retarr;	
 		}
 
-		return false;
+		return $false;
 	}
 	
    function &xMetaColumns($table)
@@ -375,7 +376,8 @@ class ADORecordset_informix72 extends ADORecordSet {
 				$o->not_null = $arr[4]=="N";
 			}
 		}
-		return $this->_fieldprops[$fieldOffset];
+		$ret = $this->_fieldprops[$fieldOffset];
+		return $ret;
 	}
 
 	function _initrs()

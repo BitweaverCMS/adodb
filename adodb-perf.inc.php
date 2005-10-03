@@ -1,6 +1,6 @@
 <?php
 /* 
-V4.63 17 May 2005  (c) 2000-2005 John Lim (jlim@natsoft.com.my). All rights reserved.
+V4.66 28 Sept 2005  (c) 2000-2005 John Lim (jlim@natsoft.com.my). All rights reserved.
   Released under both BSD license and Lesser GPL library license. 
   Whenever there is any discrepancy between the two licenses, 
   the BSD license will take precedence. See License.txt. 
@@ -351,7 +351,12 @@ Committed_AS:   348732 kB
         $perf_table = adodb_perf::table();
 		$saveE = $this->conn->fnExecute;
 		$this->conn->fnExecute = false;
-			
+		
+		global $ADODB_FETCH_MODE;
+		$save = $ADODB_FETCH_MODE;
+		$ADODB_FETCH_MODE = ADODB_FETCH_NUM;
+		if ($this->conn->fetchMode !== false) $savem = $this->conn->SetFetchMode(false);
+				
 		$sqlq = $this->conn->qstr($sql);
 		$arr = $this->conn->GetArray(
 "select count(*),tracer 
@@ -365,6 +370,9 @@ Committed_AS:   348732 kB
 				$s .= sprintf("%4d",$k[0]).' &nbsp; '.strip_tags($k[1]).'<br>';
 			}
 		}
+		
+		if (isset($savem)) $this->conn->SetFetchMode($savem);
+		$ADODB_CACHE_MODE = $save;
 		$this->conn->fnExecute = $saveE;
 		return $s;
 	}
@@ -576,7 +584,11 @@ Committed_AS:   348732 kB
 			$ret = false;
 			$save = $ADODB_FETCH_MODE;
 			$ADODB_FETCH_MODE = ADODB_FETCH_NUM;
+			if ($this->conn->fetchMode !== false) $savem = $this->conn->SetFetchMode(false);
+			
 			$rs = $this->conn->Execute($sql1);
+			
+			if (isset($savem)) $this->SetFetchMode($savem);
 			$ADODB_FETCH_MODE = $save;
 			if ($rs) {
 				while (!$rs->EOF) {

@@ -15,9 +15,9 @@ pre {
 <body bgcolor="#ffffff" text="black">
 
 <h2>ADOdb Library for PHP</h2>
-<p>V4.63 17 May 2005 (c) 2000-2005 John Lim (jlim#natsoft.com)</p>
+<p>V4.66 28 Sept 2005 (c) 2000-2005 John Lim (jlim#natsoft.com)</p>
 <p><font size="1">This software is dual licensed using BSD-Style and LGPL. This 
-  means you can use it in compiled proprietary and commercial products.</font></p>
+  means you can use it in compiled proprfietary and commercial products.</font></p>
   
 
 	<p>Useful ADOdb links:  <a href="http://adodb.sourceforge.net/#download">Download</a> &nbsp; <a href="http://adodb.sourceforge.net/#docs">Other Docs</a>
@@ -288,7 +288,7 @@ Legal options are:
 </td></tr><tr><td>MySQLi</td><td>
 	'port', 'socket', 'clientflags'
 </td></tr><tr><td>Oci8</td><td>
- 'nls_date_format'
+ 'nls_date_format','charset'
 </td></tr></tbody></table>
 </p><p>
 For all drivers, when the options <i>persist</i> or <i>persistent</i> are set,  a persistent connection is forced.
@@ -403,7 +403,9 @@ newer versions of the Oracle, eg. 9i and 10g.</p>
 <p>or</p>
 <pre> 	$conn-&gt;PConnect('myTNS', 'scott', 'tiger');</pre>
 <p>c. Host Address and SID</p>
-<pre>	$conn-&gt;Connect('192.168.0.1', 'scott', 'tiger', 'SID');</pre>
+<pre>
+	$conn->connectSID = true;
+	$conn-&gt;Connect('192.168.0.1', 'scott', 'tiger', 'SID');</pre>
 <p>d. Host Address and Service Name</p>
 <pre>	$conn-&gt;Connect('192.168.0.1', 'scott', 'tiger', 'servicename');</pre>
 <p>e. Oracle connection string:
@@ -518,7 +520,6 @@ If PHP5 is detected, the following features become available:
 catch exceptions on errors as they occur.
 <pre>	<b>include("../adodb-exceptions.inc.php");</b> <br>	include("../adodb.inc.php");	 <br>	try { <br>		$db = NewADOConnection("oci8"); <br>		$db-&gt;Connect('','scott','bad-password'); <br>	} catch (exception $e) { <br>		var_dump($e); <br>		adodb_backtrace($e-&gt;gettrace());<br>	} <br></pre>
 <p>Note that reaching EOF is <b>not</b> considered an error nor an exception.
-If you want to use the default ADOdb drivers return false.
 </p></li></ul> 
 <h3><a name="drivers"></a>Databases Supported</h3>
 The <i>name</i> below is the value you pass to NewADOConnection($name) to create a  connection object for that database.
@@ -1049,7 +1050,7 @@ and an UPDATE with:
 <pre>
     $record["firstname"] = "Caroline"; 
     $record["lastname"] = "Smith"; # Update Caroline's lastname from Miranda to Smith 
-    $insertSQL = $conn->AutoExecute($rs, $record, 'UPDATE', 'WHERE id = 1'); 
+    $insertSQL = $conn->AutoExecute($rs, $record, 'UPDATE', 'id = 1'); 
 </pre>
 <p>
 The rest of this section is out-of-date:
@@ -2034,11 +2035,11 @@ row3: Rose, Flower </font></p>
 <p><font><b>GetRow<a name="getrow"></a>($sql,$inputarr=false)</b></font></p>
 <p><font>Executes the SQL and returns the first row as an array. The recordset and remaining 
   rows are discarded for you automatically. If an error occurs, false is returned.</font></p>
-<p><font><b>GetAll<a name="getall"></a>($sql)</b></font></p>
+<p><font><b>GetAll<a name="getall"></a>($sql,$inputarr=false)</b></font></p>
 
-<p><font>Executes the SQL and returns the all the rows as a 2-dimensional 
+<p>Executes the SQL and returns the all the rows as a 2-dimensional 
   array. The recordset is discarded for you automatically. If an error occurs, 
-  false is returned.</font></p>
+  false is returned. <i>GetArray</i> is a synonym for <i>GetAll</i>.</p>
  <p><b>GetCol<a name="getcol"></a>($sql,$inputarr=false,$trim=false)</b></p>
 
 <p><font>Executes the SQL and returns all elements of the first column as a 
@@ -2810,7 +2811,47 @@ of MySQL.</font></p>
   PHP</a>. </font></p>
 
 <h2><font>Change Log<a name="Changes"></a><a name="changes"></a><a name="changelog"></a></font></h2>
-<p><a name="4.63"></a><b>4.63  ?? Apr 2005</b>
+
+<p><a name="4.66"></a><b>4.66 ?? July  2005</b>
+<p>ExecuteCursor() in oci8 did not clean up properly on failure. Fixed.
+<p>Updated xmlschema.dtd, by "Alec Smecher" asmecher#smecher.bc.ca
+<p>Hardened SelectLimit, typecasting nrows and offset to integer.
+<p>Fixed misc bugs in AutoExecute() and GetInsertSQL().
+<p>Added $conn->database as the property holding the database name. The older $conn->databaseName is retained for backward
+compat.
+<p>Changed _adodb_backtrace() compat check to use function_exists().
+<p>Bug in postgresql MetaIndexes fixed. Thx Kevin Jamieson. 
+<p>Improved OffsetDate for MySQL, reducing rounding error.
+<p>Metacolumns added to sqlite. Thx Mark Newnham.
+<p>PHP 4.4 compat fixes for GetAssoc().
+<p>Added postgresql bind support for php 5.1. Thx Cristiano da Cunha Duarte
+<p>OffsetDate() fixes for postgresql, typecasting strings to date or timestamp.
+<p>DBTimeStamp formats for mssql, odbc_mssql and postgresql made to conform with other db's.
+<p>Changed PDO constants from PDO_ to PDO:: to support latest spec.
+<p><a name="4.65"></a><b>4.65 22 July  2005</b>
+<p>Reverted 'X' in mssql datadict to 'TEXT' to be compat with mssql driver. However now you can 
+set $datadict->typeX = 'varchar(4000)' or 'TEXT' or 'CLOB' for mssql and oci8 drivers. 
+<p>Added charset support when using DSN for Oracle.
+<p>_adodb_getmenu did not use fieldcount() to get number of fields. Fixed.
+<p>MetaForeignKeys() for mysql/mysqli contributed by Juan Carlos Gonzalez.
+<p>MetaDatabases() now correctly returns an array for mysqli driver. Thx Cristian MARIN.
+<p>CompleteTrans(false) did not return false. Fixed. Thx to JMF.
+<p>AutoExecute() did not work with Oracle. Fixed. Thx José Moreira.
+<p>MetaType() added to connection object.
+<p>More PHP 4.4 reference return fixes. Thx Ryan C Bonham and others.
+
+<p><a name="4.64"></a><b>4.64 20 June 2005</b>
+<p>In datadict, if the default field value is set to '', then it is not applied when the field is created. Fixed by Eugenio.
+<p>MetaPrimaryKeys for postgres did not work because of true/false change in 4.63. Fixed.
+<p>Tested ocifetchstatement in oci8. Rejected at the end.
+<p>Added port to dsn handling. Supported in postgres, mysql, mysqli,ldap.
+<p>Added  'w' and 'l' to mysqli SQLDate().
+<p>Fixed error handling in ldap _connect() to be more consistent. Also added ErrorMsg() handling to ldap.
+<p>Added support for union in _adodb_getcount, adodb-lib.inc.php for postgres and oci8.
+<p>rs2html() did not work with null dates properly.
+<p>PHP 4.4 reference return fixes.
+
+<p><a name="4.63"></a><b>4.63  18 May 2005</b>
 <p>Added $nrows<0 check to mysqli's SelectLimit().
 <p>Added OptimizeTable() and OptimizeTables() in adodb-perf.inc.php. By Markus Staab.
 <p>PostgreSQL inconsistencies fixed. true and false set to TRUE and FALSE, and boolean type in datadict-postgres.inc.php set
@@ -3046,8 +3087,6 @@ TikiWiki. TikiPro is tidying that up, and I hope to be able to produce a
 build of THAT which uses what I consider proper UPPERCASE field and 
 table names. The conversion of TikiWiki to ADOdb helped in that, but 
 until the database is completely tidied up in TikiPro ...
-( TikiPro has been renamed bitweaver to highlight the fact that it is now more than 
-a simple tiki framework ) 
 </p><p>Modified _gencachename() to include fetchmode in name hash.
 This means you should clear your cache directory after installing this release as the 
 cache name algorithm has changed.

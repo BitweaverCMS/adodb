@@ -1,7 +1,7 @@
 <?php
 
 /**
-  V4.63 17 May 2005  (c) 2000-2005 John Lim (jlim@natsoft.com.my). All rights reserved.
+  V4.66 28 Sept 2005  (c) 2000-2005 John Lim (jlim@natsoft.com.my). All rights reserved.
   Released under both BSD license and Lesser GPL library license. 
   Whenever there is any discrepancy between the two licenses, 
   the BSD license will take precedence.
@@ -190,25 +190,25 @@ class ADODB_DataDict {
 		return false;
 	}
 	
-	function &MetaTables()
+	function MetaTables()
 	{
 		if (!$this->connection->IsConnected()) return array();
 		return $this->connection->MetaTables();
 	}
 	
-	function &MetaColumns($tab, $upper=true, $schema=false)
+	function MetaColumns($tab, $upper=true, $schema=false)
 	{
 		if (!$this->connection->IsConnected()) return array();
 		return $this->connection->MetaColumns($this->TableName($tab), $upper, $schema);
 	}
 	
-	function &MetaPrimaryKeys($tab,$owner=false,$intkey=false)
+	function MetaPrimaryKeys($tab,$owner=false,$intkey=false)
 	{
 		if (!$this->connection->IsConnected()) return array();
 		return $this->connection->MetaPrimaryKeys($this->TableName($tab), $owner, $intkey);
 	}
 	
-	function &MetaIndexes($table, $primary = false, $owner = false)
+	function MetaIndexes($table, $primary = false, $owner = false)
 	{
 		if (!$this->connection->IsConnected()) return array();
 		return $this->connection->MetaIndexes($this->TableName($table), $primary, $owner);
@@ -569,7 +569,7 @@ class ADODB_DataDict {
 				} else {
 					$fdefault = $this->connection->sysDate;
 				}
-			} else if (strlen($fdefault) && !$fnoquote)
+			} else if ($fdefault !== false && !$fnoquote)
 				if ($ty == 'C' or $ty == 'X' or 
 					( substr($fdefault,0,1) != "'" && !is_numeric($fdefault)))
 					if (strlen($fdefault) != 1 && substr($fdefault,0,1) == ' ' && substr($fdefault,strlen($fdefault)-1) == ' ') 
@@ -719,7 +719,7 @@ class ADODB_DataDict {
 		// check table exists
 		$save_handler = $this->connection->raiseErrorFn;
 		$this->connection->raiseErrorFn = '';
-		$cols = &$this->MetaColumns($tablename);
+		$cols = $this->MetaColumns($tablename);
 		$this->connection->raiseErrorFn = $save_handler;
 		
 		if (isset($savem)) $this->connection->SetFetchMode($savem);
@@ -737,9 +737,14 @@ class ADODB_DataDict {
 			$holdflds = array();
 			foreach($flds as $k=>$v) {
 				if ( isset($cols[$k]) && is_object($cols[$k]) ) {
+					// If already not allowing nulls, then don't change
+					$obj = $cols[$k];
+					if (isset($obj->not_null) && $obj->not_null)
+						$v = str_replace('NOT NULL','',$v);
+
 					$c = $cols[$k];
 					$ml = $c->max_length;
-					$mt = &$this->MetaType($c->type,$ml);
+					$mt = $this->MetaType($c->type,$ml);
 					if ($ml == -1) $ml = '';
 					if ($mt == 'X') $ml = $v['SIZE'];
 					if (($mt != $v['TYPE']) ||  $ml != $v['SIZE']) {

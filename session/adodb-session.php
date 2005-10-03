@@ -2,7 +2,7 @@
 
 
 /*
-V4.63 17 May 2005  (c) 2000-2005 John Lim (jlim@natsoft.com.my). All rights reserved.
+V4.66 28 Sept 2005  (c) 2000-2005 John Lim (jlim@natsoft.com.my). All rights reserved.
          Contributed by Ross Smith (adodb@netebb.com). 
   Released under both BSD license and Lesser GPL library license.
   Whenever there is any discrepancy between the two licenses,
@@ -834,11 +834,19 @@ class ADODB_Session {
 				$conn->CommitTrans();
 			}
 		} else {
-			$sql = "DELETE FROM $table WHERE expiry < $time";
-			$rs =& $conn->Execute($sql);
-			ADODB_Session::_dumprs($rs);
-			if ($rs) {
-				$rs->Close();
+		
+			if (1) {
+				$sql = "SELECT sesskey FROM $table WHERE expiry < $time";
+				$arr =& $conn->GetAll($sql);
+				foreach ($arr as $row) {
+					$sql2 = "DELETE FROM $table WHERE sesskey='$row[0]'";
+					$conn->Execute($sql2);
+				}
+			} else {
+				$sql = "DELETE FROM $table WHERE expiry < $time";
+				$rs =& $conn->Execute($sql);
+				ADODB_Session::_dumprs($rs);
+				if ($rs) $rs->Close();
 			}
 			if ($debug) {
 				ADOConnection::outp("<p><b>Garbage Collection</b>: $sql</p>");

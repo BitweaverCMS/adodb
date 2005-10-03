@@ -1,6 +1,6 @@
 <?php
 /*
-V4.63 17 May 2005  (c) 2000-2005 John Lim (jlim@natsoft.com.my). All rights reserved.  
+V4.66 28 Sept 2005  (c) 2000-2005 John Lim (jlim@natsoft.com.my). All rights reserved.  
   Released under both BSD license and Lesser GPL library license. 
   Whenever there is any discrepancy between the two licenses, 
   the BSD license will take precedence.
@@ -191,7 +191,7 @@ class ADODB_ibase extends ADOConnection {
 	{
         // save old fetch mode
         global $ADODB_FETCH_MODE;
-        
+        $false = false;
         $save = $ADODB_FETCH_MODE;
         $ADODB_FETCH_MODE = ADODB_FETCH_NUM;
         if ($this->fetchMode !== FALSE) {
@@ -212,7 +212,7 @@ class ADODB_ibase extends ADOConnection {
 	            $this->SetFetchMode($savem);
 	        }
 	        $ADODB_FETCH_MODE = $save;
-            return FALSE;
+            return $false;
         }
         
         $indexes = array ();
@@ -474,24 +474,6 @@ class ADODB_ibase extends ADOConnection {
 				break;
 		} // switch
 	}
-
-	function &MetaTables($ttype=false,$showSchema=false,$mask=false) 
-	{	
-		$save = $this->metaTablesSQL;
-		if ($showSchema) {
-			return false;
-		}
-		
-		if ($mask) {
-			$mask = $this->qstr($mask);
-			$this->metaTablesSQL = "select rdb\$relation_name from rdb\$relations where rdb\$relation_name like $mask AND rdb\$relation_name not like 'RDB\$%'";
-		}
-		$ret =& ADOConnection::MetaTables($ttype);
-		
-		$this->metaTablesSQL = $save;
-		return $ret;
-	}
-	
 	//OPN STUFF end
 		// returns array of ADOFieldObjects for current table
 	function &MetaColumns($table) 
@@ -504,8 +486,8 @@ class ADODB_ibase extends ADOConnection {
 		$rs = $this->Execute(sprintf($this->metaColumnsSQL,strtoupper($table)));
 	
 		$ADODB_FETCH_MODE = $save;
+		$false = false;
 		if ($rs === false) {
-			$false = false;
 			return $false;
 		}
 		
@@ -551,7 +533,8 @@ class ADODB_ibase extends ADOConnection {
 			$rs->MoveNext();
 		}
 		$rs->Close();
-		return empty($retarr) ? false : $retarr;	
+		if ( empty($retarr)) return $false;
+		else return $retarr;	
 	}
 	
 	function BlobEncode( $blob ) 
