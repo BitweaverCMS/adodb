@@ -20,7 +20,7 @@
 </head>
 <body style="background-color: rgb(255, 255, 255);">
 <h2>ADOdb Data Dictionary Library for PHP</h2>
-<p>V4.63 17 May 2005 (c) 2000-2005 John Lim (<a
+<p>V4.66 28 Sept 2005 (c) 2000-2005 John Lim (<a
  href="mailto:jlim#natsoft.com.my">jlim#natsoft.com.my</a>).<br>
 AXMLS (c) 2004 ars Cognita, Inc</p>
 <p><font size="1">This software is dual licensed using BSD-Style and
@@ -43,7 +43,7 @@ dcech#phpwerx.net and richtl#arscognita.com.</p>
 generic ODBC.
 </p>
 <h3>Example Usage</h3>
-<pre>  include_once('adodb.inc.php');<br>  <font color="#006600"># First create a normal connection</font><br>  $db-&gt;NewADOConnection('mysql');<br>  $db-&gt;Connect(...);<br><br>  <font
+<pre>  include_once('adodb.inc.php');<br>  <font color="#006600"># First create a normal connection</font><br>  $db = NewADOConnection('mysql');<br>  $db-&gt;Connect(...);<br><br>  <font
  color="#006600"># Then create a data dictionary object, using this connection</font><br>  $dict = <strong>NewDataDictionary</strong>($db);<br><br>  <font
  color="#006600"># We have a portable declarative data dictionary format in ADOdb, similar to SQL.<br>  # Field types use 1 character codes, and fields are separated by commas.<br>  # The following example creates three fields: "col1", "col2" and "col3":</font><br>  $flds = " <br>  <font
  color="#663300"><strong> col1 C(32) NOTNULL DEFAULT 'abc',<br>   col2 I  DEFAULT 0,<br>   col3 N(12.2)</strong></font><br>  ";<br><br>  <font

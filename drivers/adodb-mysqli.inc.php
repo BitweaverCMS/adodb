@@ -1,6 +1,6 @@
 <?php
 /*
-V4.63 17 May 2005  (c) 2000-2005 John Lim (jlim@natsoft.com.my). All rights reserved.
+V4.66 28 Sept 2005  (c) 2000-2005 John Lim (jlim@natsoft.com.my). All rights reserved.
   Released under both BSD license and Lesser GPL library license. 
   Whenever there is any discrepancy between the two licenses, 
   the BSD license will take precedence.
@@ -84,27 +84,26 @@ class ADODB_mysqli extends ADOConnection {
 		foreach($this->optionFlags as $arr) {	
 			mysqli_options($this->_connectionID,$arr[0],$arr[1]);
 		}
-		
- 	    if (mysqli_real_connect($this->_connectionID,
+
+		#if (!empty($this->port)) $argHostname .= ":".$this->port;
+		$ok = mysqli_real_connect($this->_connectionID,
  				    $argHostname,
  				    $argUsername,
  				    $argPassword,
  				    $argDatabasename,
 					$this->port,
 					$this->socket,
-					$this->clientFlags))
- 	      {
- 		if ($argDatabasename)  return $this->SelectDB($argDatabasename);
-		  
-		
- 		return true;
- 	   }
- 	    else {
+					$this->clientFlags);
+ 	     
+		if ($ok) {
+	 		if ($argDatabasename)  return $this->SelectDB($argDatabasename);
+ 			return true;
+ 	   } else {
 			if ($this->debug) 
 		  		ADOConnection::outp("Could't connect : "  . $this->ErrorMsg());
 			return false;
-	      }
-	  }
+	   }
+	}
 	
 	// returns true or false
 	// How to force a persistent connection
@@ -251,7 +250,16 @@ class ADODB_mysqli extends ADOConnection {
 	{
 		$query = "SHOW DATABASES";
 		$ret =& $this->Execute($query);
-		return $ret;
+		if ($ret && is_object($ret)){
+		   $arr = array();
+			while (!$ret->EOF){
+				$db = $ret->Fields('Database');
+				if ($db != 'mysql') $arr[] = $db;
+				$ret->MoveNext();
+			}
+   		   return $arr;
+		}
+        return $ret;
 	}
 
 	  
@@ -260,6 +268,7 @@ class ADODB_mysqli extends ADOConnection {
 		// save old fetch mode
 		global $ADODB_FETCH_MODE;
 		
+		$false = false;
 		$save = $ADODB_FETCH_MODE;
 		$ADODB_FETCH_MODE = ADODB_FETCH_NUM;
 		if ($this->fetchMode !== FALSE) {
@@ -276,7 +285,7 @@ class ADODB_mysqli extends ADOConnection {
 		$ADODB_FETCH_MODE = $save;
 		
 		if (!is_object($rs)) {
-		        return FALSE;
+		        return $false;
 		}
 		
 		$indexes = array ();
@@ -361,6 +370,14 @@ class ADODB_mysqli extends ADOConnection {
 			case 'A':
 				$s .= '%p';
 				break;
+			
+			case 'w':
+				$s .= '%w';
+				break;
+				
+			case 'l':
+				$s .= '%W';
+				break;
 				
 			default:
 				
@@ -415,10 +432,49 @@ class ADODB_mysqli extends ADOConnection {
 		return $ret;
 	}
 	
+	// "Innox - Juan Carlos Gonzalez" <jgonzalez#innox.com.mx>
+	function MetaForeignKeys( $table, $owner = FALSE, $upper = FALSE, $asociative = FALSE )
+	{
+	    if ( !empty($owner) ) {
+	       $table = "$owner.$table";
+	    }
+	    $a_create_table = $this->getRow(sprintf('SHOW CREATE TABLE %s', $table));
+		if ($associative) $create_sql = $a_create_table["Create Table"];
+	    else $create_sql  = $a_create_table[1];
+	
+	    $matches = array();
+	
+	    if (!preg_match_all("/FOREIGN KEY \(`(.*?)`\) REFERENCES `(.*?)` \(`(.*?)`\)/", $create_sql, $matches)) return false;
+	 	$foreign_keys = array();	 	 
+	    $num_keys = count($matches[0]);
+	    for ( $i = 0;  $i < $num_keys;  $i ++ ) {
+	        $my_field  = explode('`, `', $matches[1][$i]);
+	        $ref_table = $matches[2][$i];
+	        $ref_field = explode('`, `', $matches[3][$i]);
+	
+	        if ( $upper ) {
+	            $ref_table = strtoupper($ref_table);
+	        }
+	
+	        $foreign_keys[$ref_table] = array();
+	        $num_fields               = count($my_field);
+	        for ( $j = 0;  $j < $num_fields;  $j ++ ) {
+	            if ( $asociative ) {
+	                $foreign_keys[$ref_table][$ref_field[$j]] = $my_field[$j];
+	            } else {
+	                $foreign_keys[$ref_table][] = "{$my_field[$j]}={$ref_field[$j]}";
+	            }
+	        }
+	    }
+	    
+	    return  $foreign_keys;
+	}
+	
  	function &MetaColumns($table) 
 	{
+		$false = false;
 		if (!$this->metaColumnsSQL)
-			return false;
+			return $false;
 		
 		global $ADODB_FETCH_MODE;
 		$save = $ADODB_FETCH_MODE;
@@ -429,7 +485,7 @@ class ADODB_mysqli extends ADOConnection {
 		if (isset($savem)) $this->SetFetchMode($savem);
 		$ADODB_FETCH_MODE = $save;
 		if (!is_object($rs))
-			return false;
+			return $false;
 		
 		$retarr = array();
 		while (!$rs->EOF) {
@@ -486,7 +542,9 @@ class ADODB_mysqli extends ADOConnection {
 	function SelectDB($dbName) 
 	{
 //	    $this->_connectionID = $this->mysqli_resolve_link($this->_connectionID);
-	    $this->databaseName = $dbName;
+	    $this->database = $dbName;
+		$this->databaseName = $dbName; # obsolete, retained for compat with older adodb versions
+		
 	    if ($this->_connectionID) {
         	$result = @mysqli_select_db($this->_connectionID, $dbName);
 			if (!$result) {
@@ -544,7 +602,7 @@ class ADODB_mysqli extends ADOConnection {
 				else $a .= 'd';
 			}
 			
-			$fnarr =& array_merge( array($stmt,$a) , $inputarr);
+			$fnarr = array_merge( array($stmt,$a) , $inputarr);
 			$ret = call_user_func_array('mysqli_stmt_bind_param',$fnarr);
 
 			$ret = mysqli_stmt_execute($stmt);

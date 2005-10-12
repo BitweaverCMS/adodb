@@ -1,7 +1,7 @@
 <?php
 /**
 ADOdb Date Library, part of the ADOdb abstraction library
-Download: http://php.weblogs.com/adodb_date_time_library
+Download: http://phplens.com/phpeverywhere/
 
 PHP native date functions use integer timestamps for computations.
 Because of this, dates are restricted to the years 1901-2038 on Unix 
@@ -241,11 +241,14 @@ b. Implement daylight savings, which looks awfully complicated, see
 
 
 CHANGELOG
+- 08 Sept 2005 0.22
+In adodb_date2(), $is_gmt not supported properly. Fixed.
 
-- ? ? 2005  0.18
-- In PHP 4.3.11, the 'r' format has changed. Leading 0 in day is added. Changed for compat.
+- 18 July  2005 0.21
+In PHP 4.3.11, the 'r' format has changed. Leading 0 in day is added. Changed for compat.
+Added support for negative months in adodb_mktime().
 
-- 24 Feb 2005 
+- 24 Feb 2005 0.20
 Added limited strftime/gmstrftime support. x10 improvement in performance of adodb_date().
 
 - 21 Dec 2004 0.17
@@ -358,7 +361,7 @@ First implementation.
 /*
 	Version Number
 */
-define('ADODB_DATE_VERSION',0.18);
+define('ADODB_DATE_VERSION',0.22);
 
 /*
 	This code was originally for windows. But apparently this problem happens 
@@ -592,19 +595,7 @@ Thursday, October 4, 1582 (Julian) was followed immediately by Friday, October 1
 	return $day - 7 * floor($day / 7);
 }
 
-/**
- *	Returns week of year, 1 = first week of year. 
- *	Algorithm from PEAR::Date_Calc
- * This needs to be checked out for both start day and early date rules
- */
-function adodb_woy($year, $month, $day)
-{
-        $iso    = gregorianToISO($year, $month, $day);
-        $parts  = explode('-',$iso);
-        $week_number = intval($parts[1]);
-        return $week_number;
-    }
-    
+
 /**
  Checks for leap year, returns true if it is. No 2-digit year check. Also 
  handles julian calendar correctly.
@@ -622,6 +613,7 @@ function _adodb_is_leap_year($year)
 	
 	return true;
 }
+
 
 /**
  checks for leap year, returns true if it is. Has 2-digit year check
@@ -705,6 +697,28 @@ echo "<hr>$i ";
 
 */
 
+
+$_month_table_normal = array("",31,28,31,30,31,30,31,31,30,31,30,31);
+$_month_table_leaf = array("",31,29,31,30,31,30,31,31,30,31,30,31);
+	
+function adodb_validdate($y,$m,$d)
+{
+global $_month_table_normal,$_month_table_leaf;
+
+	if (_adodb_is_leap_year($y)) $marr =& $_month_table_leaf;
+	else $marr =& $_month_table_normal;
+	
+	if ($m > 12 || $m < 1) return false;
+	
+	if ($d > 31 || $d < 1) return false;
+	
+	if ($marr[$m] < $d) return false;
+	
+	if ($y < 1000 && $y > 3000) return false;
+	
+	return true;
+}
+
 /**
 	Low-level function that returns the getdate() array. We have a special
 	$fast flag, which if set to true, will return fewer array values,
@@ -713,6 +727,7 @@ echo "<hr>$i ";
 function _adodb_getdate($origd=false,$fast=false,$is_gmt=false)
 {
 static $YRS;
+global $_month_table_normal,$_month_table_leaf;
 
 	$d =  $origd - ($is_gmt ? 0 : adodb_get_gmt_diff());
 	
@@ -913,18 +928,17 @@ function adodb_gmdate($fmt,$d=false)
 
 // accepts unix timestamp and iso date format in $d
 function adodb_date2($fmt, $d=false, $is_gmt=false)
-{	if ( is_numeric($d) ) adodb_date($fmt,$d,$is_gmt);
-
+{
 	if ($d !== false) {
 		if (!preg_match( 
-			"|^([0-9]{3,4})[-/\.]?([0-9]{1,2})[-/\.]?([0-9]{1,2})[ -]?(([0-9]{1,2}):?([0-9]{1,2}):?([0-9\.]{1,4}))?|", 
+			"|^([0-9]{4})[-/\.]?([0-9]{1,2})[-/\.]?([0-9]{1,2})[ -]?(([0-9]{1,2}):?([0-9]{1,2}):?([0-9\.]{1,4}))?|", 
 			($d), $rr)) return adodb_date($fmt,false,$is_gmt);
 
 		if ($rr[1] <= 100 && $rr[2]<= 1) return adodb_date($fmt,false,$is_gmt);
 	
 		// h-m-s-MM-DD-YY
-		if (!isset($rr[5])) $d = adodb_mktime(0,0,0,$rr[2],$rr[3],$rr[1]);
-		else $d = @adodb_mktime($rr[5],$rr[6],$rr[7],$rr[2],$rr[3],$rr[1]);
+		if (!isset($rr[5])) $d = adodb_mktime(0,0,0,$rr[2],$rr[3],$rr[1],false,$is_gmt);
+		else $d = @adodb_mktime($rr[5],$rr[6],$rr[7],$rr[2],$rr[3],$rr[1],false,$is_gmt);
 	}
 	
 	return adodb_date($fmt,$d,$is_gmt);
@@ -1122,11 +1136,15 @@ function adodb_mktime($hr,$min,$sec,$mon=false,$day=false,$year=false,$is_dst=fa
 	
 	
 	$year = adodb_year_digit_check($year);
-	
+
 	if ($mon > 12) {
 		$y = floor($mon / 12);
 		$year += $y;
 		$mon -= $y*12;
+	} else if ($mon < 1) {
+		$y = ceil((1-$mon) / 12);
+		$year -= $y;
+		$mon += $y*12;
 	}
 	
 	$_day_power = 86400;
@@ -1269,11 +1287,11 @@ global $ADODB_DATE_LOCALE;
 			case 'S': $fmtdate .= 's'; break;
 			case 't': $fmtdate .= "\t"; break;
 			case 'T': $fmtdate .= 'H:i:s'; break;
-			case 'u': $fmtdate .= '?u'; $parseu = true; break; // wrong strftime=1-based, date=0-basde
+			case 'u': $fmtdate .= '?u'; $parseu = true; break; // wrong strftime=1-based, date=0-based
 			case 'U': $fmtdate .= '?U'; $parseU = true; break;// wrong strftime=1-based, date=0-based
 			case 'x': $fmtdate .= $ADODB_DATE_LOCALE[0]; break;
 			case 'X': $fmtdate .= $ADODB_DATE_LOCALE[1]; break;
-			case 'w': $fmtdate .= '?w'; $parseu = true; break; // wrong strftime=1-based, date=0-basde
+			case 'w': $fmtdate .= '?w'; $parseu = true; break; // wrong strftime=1-based, date=0-based
 			case 'W': $fmtdate .= '?W'; $parseU = true; break;// wrong strftime=1-based, date=0-based
 			case 'y': $fmtdate .= 'y'; break;
 			case 'Y': $fmtdate .= 'Y'; break;
@@ -1290,76 +1308,5 @@ global $ADODB_DATE_LOCALE;
 	return $ret;
 }
 
-/**
- * Converts from Gregorian Year-Month-Day to ISO YearNumber-WeekNumber-WeekDay
- *
- * Uses ISO 8601 definitions.
- * Algorithm from Rick McCarty, 1999 at http://personal.ecu.edu/mccartyr/ISOwdALG.txt
- *
- * @param int $year
- * @param int $month
- * @param int $day
- * @return string
- * @access public
- */
-// Transcribed to PHP by Jesus M. Castagnetto (blame him if it is fubared ;-)
-function gregorianToISO($year, $month, $day) {
-	$mnth = array (0,31,59,90,120,151,181,212,243,273,304,334);
-	if ($month == 0) {
-		$year--;
-		$month = 12;
-	}	
-	$y_isleap = adodb_is_leap_year($year);
-	$y_1_isleap = adodb_is_leap_year($year - 1);
-
-	$day_of_year_number = $day + $mnth[$month - 1];
-	if ($y_isleap && $month > 2) {
-		$day_of_year_number++;
-	}
-	// find Jan 1 weekday (monday = 1, sunday = 7)
-	$yy = ($year - 1) % 100;
-	$c = ($year - 1) - $yy;
-	$g = $yy + intval($yy/4);
-	$jan1_weekday = 1 + intval((((($c / 100) % 4) * 5) + $g) % 7);
-	// weekday for year-month-day
-	$h = $day_of_year_number + ($jan1_weekday - 1);
-	$weekday = 1 + intval(($h - 1) % 7);
-	// find if Y M D falls in YearNumber Y-1, WeekNumber 52 or
-	if ($day_of_year_number <= (8 - $jan1_weekday) && $jan1_weekday > 4){
-		$yearnumber = $year - 1;
-		if ($jan1_weekday == 5 || ($jan1_weekday == 6 && $y_1_isleap)) {
-			$weeknumber = 53;
-		} else {
-			$weeknumber = 52;
-		}
-	} else {
-		$yearnumber = $year;
-	}
-	// find if Y M D falls in YearNumber Y+1, WeekNumber 1
-	if ($yearnumber == $year) {
-		if ($y_isleap) {
-			$i = 366;
-		} else {
-			$i = 365;
-		}
-		if (($i - $day_of_year_number) < (4 - $weekday)) {
-			$yearnumber++;
-			$weeknumber = 1;
-		}
-	}
-	// find if Y M D falls in YearNumber Y, WeekNumber 1 through 53
-	if ($yearnumber == $year) {
-		$j = $day_of_year_number + (7 - $weekday) + ($jan1_weekday - 1);
-		//$weeknumber = intval($j / 7) + 1; // kludge!!! - JMC
-           $weeknumber = intval($j / 7); // kludge!!! - JMC
-		if ($jan1_weekday > 4) {
-			$weeknumber--;
-		}
-	}
-	// put it all together
-	if ($weeknumber < 10)
-		$weeknumber = '0'.$weeknumber;
-	return "{$yearnumber}-{$weeknumber}-{$weekday}";
-}
 
 ?>

@@ -1,6 +1,6 @@
 <?php
 /* 
-V4.63 17 May 2005  (c) 2000-2005 John Lim (jlim@natsoft.com.my). All rights reserved.
+V4.66 28 Sept 2005  (c) 2000-2005 John Lim (jlim@natsoft.com.my). All rights reserved.
   Released under both BSD license and Lesser GPL library license. 
   Whenever there is any discrepancy between the two licenses, 
   the BSD license will take precedence. 
@@ -14,6 +14,15 @@ error_reporting(E_ALL);
 $ADODB_FLUSH = true;
 
 define('ADODB_ASSOC_CASE',0);
+
+
+function getmicrotime()
+{
+	$t = microtime();
+	$t = explode(' ',$t);
+	return (float)$t[1]+ (float)$t[0];
+}
+
 
 if (PHP_VERSION < 5) include_once('../adodb-pear.inc.php');
 //--------------------------------------------------------------------------------------
@@ -167,12 +176,17 @@ FROM `nuke_stories` `t1`, `nuke_authors` `t2`, `nuke_stories_cat` `t3`, `nuke_to
 			print "<b>Please create the following table for testing:</b></p>$createtab</p>";
 			return;
 		} else {
-			$db->debug = 1;
+			$db->debug = 99;
 			$e = error_reporting(E_ALL-E_WARNING);
 			$db->Execute($createtab);
 			error_reporting($e);
 		}
 	}
+	
+	echo "<p>Testing Metatypes</p>";
+	$t = $db->MetaType('varchar');
+	if ($t != 'C') Err("Bad Metatype for varchar");
+	
 	$rs = &$db->Execute("delete from ADOXYZ"); // some ODBC drivers will fail the drop so we delete
 	if ($rs) {
 		if(! $rs->EOF) print "<b>Error: </b>RecordSet returned by Execute('delete...') should show EOF</p>";
@@ -329,7 +343,7 @@ ef")."</p>";//'
 		print "<p>Testing Foreign Keys</p>";
 		$arr = $db->MetaForeignKeys('adoxyz',false,true);
 		print_r($arr);
-		if (!$arr) Err("Bad MetaForeignKeys");
+		if (!$arr) Err("No MetaForeignKeys");
 		break;
 	
 	case 'odbc_mssql':
@@ -434,6 +448,16 @@ GO
 	case 'oci8': 
 	case 'oci8po':
 		
+		if (0) {
+		$t = getmicrotime();
+		$ADODB_FETCH_MODE = ADODB_FETCH_NUM;
+		$arr = $db->GetArray('select * from abalone_tree');
+		$arr = $db->GetArray('select * from abalone_tree');
+		$arr = $db->GetArray('select * from abalone_tree');
+		echo "<p>t = ",getmicrotime() - $t,"</p>";
+		die();
+		}
+		
 		# cleanup
 		$db->Execute("delete from photos where id=99 or id=1");
 		$db->Execute("insert into photos (id) values(1)");
@@ -499,7 +523,7 @@ GO
 		$s = '';
 		$s2 = '';
 		print "<h4>Testing Foreign Keys</h4>";
-		$arr = $db->MetaForeignKeys('emp');
+		$arr = $db->MetaForeignKeys('emp','scott');
 		print_r($arr);
 		if (!$arr) Err("Bad MetaForeignKeys");
 /*
@@ -599,7 +623,7 @@ END Adodb;
 		array(2,'John','Lim'),
 		array(3,'Wai Hun','See')
 	);
-	$db->debug=1;
+	//$db->debug=1;
 	print "<p>Testing Bulk Insert of 3 rows</p>";
 
 	$sql = "insert into ADOXYZ (id,firstname,lastname) values (".$db->Param('0').",".$db->Param('1').",".$db->Param('2').")";
@@ -607,7 +631,7 @@ END Adodb;
 	$db->Execute($sql,$arr);
 	$db->CompleteTrans();
 	$rs = $db->Execute('select * from ADOXYZ order by id');
-	if ($rs->RecordCount() != 3) Err("Bad bulk insert");
+	if (!$rs || $rs->RecordCount() != 3) Err("Bad bulk insert");
 	
 	rs2html($rs);
 	
@@ -732,7 +756,8 @@ END Adodb;
 		$rs = &$db->Execute("select id,firstname,lastname,created,".$db->random." from ADOXYZ order by id");
 		if ($rs) {
 			if ($rs->RecordCount() != 50) {
-				print "<p><b>RecordCount returns ".$rs->RecordCount()."</b></p>";
+				print "<p><b>RecordCount returns ".$rs->RecordCount().", should be 50</b></p>";
+				adodb_pr($rs->GetArray());
 				$poc = $rs->PO_RecordCount('ADOXYZ');
 				if ($poc == 50) print "<p> &nbsp; &nbsp; PO_RecordCount passed</p>";
 				else print "<p><b>PO_RecordCount returns wrong value: $poc</b></p>";
@@ -1060,12 +1085,19 @@ END Adodb;
 	}
 	// Comment this out to test countrecs = false
 	$ADODB_COUNTRECS = $savecrecs;
+	$db->debug=1;
+	$query = $db->Prepare("select count(*) from ADOXYZ");
+	$rs = $db->CacheExecute(10,$query);
+	if (reset($rs->fields) != 50) echo Err("$cnt wrong for Prepare/CacheGetOne");
 	
 	for ($loop=0; $loop < 1; $loop++) {
 	print "Testing GetMenu() and CacheExecute<BR>";
 	$db->debug = true;
 	$rs = &$db->CacheExecute(4,"select distinct firstname,lastname from ADOXYZ");
 	
+	
+
+
 	if ($rs) print 'With blanks, Steven selected:'. $rs->GetMenu('menu','Steven').'<BR>'; 
 	else print " Fail<BR>";
 	$rs = &$db->CacheExecute(4,"select distinct firstname,lastname from ADOXYZ");
@@ -1086,8 +1118,9 @@ END Adodb;
 	print '</p><hr>';
 	
 	print "Testing GetMenu3()<br>";
-	$rs = $db->Execute("select firstname,id, lastname from ADOXYZ order by lastname");
-	print "Grouped Menu: ".$rs->GetMenu3('name');
+	$rs = $db->Execute("select ".$db->Concat('firstname',"'-'",'id').",id, lastname from ADOXYZ order by lastname,id");
+	if ($rs) print "Grouped Menu: ".$rs->GetMenu3('name');
+	else Err('Grouped Menu GetMenu3()');
 	print "<hr>";
 
 	print "Testing GetMenu2() <BR>";
@@ -1545,14 +1578,16 @@ END Adodb;
 	print "<p>Testing Bad Connection</p>";
 	flush();
 	
-	if ($db->dataProvider == 'odbtp') $db->databaseType = 'odbtp';
-	$conn = NewADOConnection($db->databaseType);
-	$conn->raiseErrorFn = 'adodb_test_err';
-	if (1) @$conn->PConnect('abc','baduser','badpassword');
-	if ($TESTERRS == 2) print "raiseErrorFn tests passed<br>";
-	else print "<b>raiseErrorFn tests failed ($TESTERRS)</b><br>";
-	
-	flush();
+	if (true || PHP_VERSION < 5)  {
+		if ($db->dataProvider == 'odbtp') $db->databaseType = 'odbtp';
+		$conn = NewADOConnection($db->databaseType);
+		$conn->raiseErrorFn = 'adodb_test_err';
+		if (1) $conn->PConnect('abc','baduser','badpassword');
+		if ($TESTERRS == 2) print "raiseErrorFn tests passed<br>";
+		else print "<b>raiseErrorFn tests failed ($TESTERRS)</b><br>";
+		
+		flush();
+	}
 	////////////////////////////////////////////////////////////////////
 	
 	global $nocountrecs;

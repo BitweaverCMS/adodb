@@ -1,7 +1,7 @@
 <?php
 /*
 
-  V4.63 17 May 2005  (c) 2000-2005 John Lim (jlim@natsoft.com.my). All rights reserved.
+  V4.66 28 Sept 2005  (c) 2000-2005 John Lim (jlim@natsoft.com.my). All rights reserved.
   Released under both BSD license and Lesser GPL library license. 
   Whenever there is any discrepancy between the two licenses, 
   the BSD license will take precedence.
@@ -60,19 +60,19 @@ TS            T      DEFTIMESTAMP";
 	$dict->SetSchema('KUTU');
 	
 	$sqli = ($dict->CreateTableSQL('testtable',$flds, $opts));
-	$sqla =& array_merge($sqla,$sqli);
+	$sqla = array_merge($sqla,$sqli);
 	
 	$sqli = $dict->CreateIndexSQL('idx','testtable','firstname,lastname',array('BITMAP','FULLTEXT','CLUSTERED','HASH'));
-	$sqla =& array_merge($sqla,$sqli);
+	$sqla = array_merge($sqla,$sqli);
 	$sqli = $dict->CreateIndexSQL('idx2','testtable','price,lastname');//,array('BITMAP','FULLTEXT','CLUSTERED'));
-	$sqla =& array_merge($sqla,$sqli);
+	$sqla = array_merge($sqla,$sqli);
 	
 	$addflds = array(array('height', 'F'),array('weight','F'));
 	$sqli = $dict->AddColumnSQL('testtable',$addflds);
-	$sqla =& array_merge($sqla,$sqli);
+	$sqla = array_merge($sqla,$sqli);
 	$addflds = array(array('height', 'F','NOTNULL'),array('weight','F','NOTNULL'));
 	$sqli = $dict->AlterColumnSQL('testtable',$addflds);
-	$sqla =& array_merge($sqla,$sqli);
+	$sqla = array_merge($sqla,$sqli);
 	
 	
 	printsqla($dbType,$sqla);
