@@ -269,6 +269,9 @@ class ADODB_mysql extends ADOConnection {
 			case 'm':
 				$s .= '%m';
 				break;
+			case 'W':
+				$s .= '%U';
+				break;
 			case 'D':
 			case 'd':
 				$s .= '%d';

@@ -279,6 +279,11 @@ select viewname,'V' from pg_views where viewname like $mask";
 			case 'm':
 				$s .= 'MM';
 				break;
+
+			case 'W':
+				$s .= 'W';
+				break;
+				
 			case 'D':
 			case 'd':
 				$s .= 'DD';
