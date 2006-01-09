@@ -1,7 +1,7 @@
 <?php
 
 /**
-  V4.22 15 Apr 2004  (c) 2000-2004 John Lim (jlim@natsoft.com.my). All rights reserved.
+  V4.70 06 Jan 2006  (c) 2000-2006 John Lim (jlim@natsoft.com.my). All rights reserved.
   Released under both BSD license and Lesser GPL library license. 
   Whenever there is any discrepancy between the two licenses, 
   the BSD license will take precedence.
@@ -14,18 +14,18 @@ class ADODB2_firebird extends ADODB_DataDict {
 	
 	var $databaseType = 'firebird';
 	var $seqField = false;
-	var $seqPrefix = 's_';
+	var $seqPrefix = 'gen_';
 	var $blobSize = 40000;	
  	
  	function ActualType($meta)
 	{
 		switch($meta) {
 		case 'C': return 'VARCHAR';
-		case 'XL':
-		case 'X': return 'BLOB SUB_TYPE TEXT'; 
+		case 'XL': return 'VARCHAR(32000)'; 
+		case 'X': return 'VARCHAR(4000)'; 
 		
-		case 'C2': return 'VARCHAR(32765)'; // up to 32K
-		case 'X2': return 'VARCHAR(4096)';
+		case 'C2': return 'VARCHAR'; // up to 32K
+		case 'X2': return 'VARCHAR(4000)';
 		
 		case 'B': return 'BLOB';
 			
@@ -69,7 +69,7 @@ class ADODB2_firebird extends ADODB_DataDict {
 		if ( !preg_match('/^[' . $this->nameRegex . ']+$/', $name) ) {
 			return $quote . $name . $quote;
 		}
-
+		
 		return $quote . $name . $quote;
 	}
 
@@ -87,9 +87,9 @@ class ADODB2_firebird extends ADODB_DataDict {
 	{
 		if (strpos($t,'.') !== false) {
 			$tarr = explode('.',$t);
-			return 'DROP GENERATOR '.$tarr[0].'."g_'.$tarr[1].'"';
+			return 'DROP GENERATOR '.$tarr[0].'."gen_'.$tarr[1].'"';
 		}
-		return 'DROP GENERATOR "G_'.$t;
+		return 'DROP GENERATOR "GEN_'.$t;
 	}
 	
 
@@ -100,7 +100,6 @@ class ADODB2_firebird extends ADODB_DataDict {
 		if (strlen($fdefault)) $suffix .= " DEFAULT $fdefault";
 		if ($fnotnull) $suffix .= ' NOT NULL';
 		if ($fautoinc) $this->seqField = $fname;
-		$fconstraint = preg_replace("/``/", "\"", $fconstraint);
 		if ($fconstraint) $suffix .= ' '.$fconstraint;
 		
 		return $suffix;
@@ -126,11 +125,11 @@ end;
 			else $tab = $tab1;
 			$seqField = $this->seqField;
 			$seqname = $this->schema.'.'.$this->seqPrefix.$tab;
-			$trigname = $this->schema.'.t_'.$this->seqPrefix.$tab;
+			$trigname = $this->schema.'.trig_'.$this->seqPrefix.$tab;
 		} else {
 			$seqField = $this->seqField;
 			$seqname = $this->seqPrefix.$tab1;
-			$trigname = 't_'.$seqname;
+			$trigname = 'trig_'.$seqname;
 		}
 		if (isset($tableoptions['REPLACE']))
 		{ $sql[] = "DROP GENERATOR \"$seqname\"";
