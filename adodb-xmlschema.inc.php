@@ -10,13 +10,27 @@
  * build a database on any ADOdb-supported platform using a simple
  * XML schema.
  *
- * Last Editor: $Author: spiderr $
+ * Last Editor: $Author: squareing $
  * @author Richard Tango-Lowy & Dan Cech
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  *
  * @package axmls
  * @tutorial getting_started.pkg
  */
+ 
+function _file_get_contents($file) 
+{
+ 	if (function_exists('file_get_contents')) return file_get_contents($file);
+	
+	$f = fopen($file,'r');
+	if (!$f) return '';
+	$t = '';
+	
+	while ($s = fread($f,100000)) $t .= $s;
+	fclose($f);
+	return $t;
+}
+
 
 /**
 * Debug on or off
@@ -1195,7 +1209,7 @@ class dbQuerySet extends dbObject {
 * @tutorial getting_started.pkg
 *
 * @author Richard Tango-Lowy & Dan Cech
-* @version $Revision: 1.2 $
+* @version $Revision: 1.3 $
 *
 * @package axmls
 */
@@ -1572,6 +1586,7 @@ class adoSchema {
 	* @return array Array of SQL statements or FALSE if an error occurs
 	*/
 	function PrintSQL( $format = 'NONE' ) {
+		$sqlArray = null;
 		return $this->getSQL( $format, $sqlArray );
 	}
 	
