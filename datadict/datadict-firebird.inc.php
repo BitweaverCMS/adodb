@@ -89,7 +89,8 @@ class ADODB2_firebird extends ADODB_DataDict {
 			$tarr = explode('.',$t);
 			return 'DROP GENERATOR '.$tarr[0].'."g_'.$tarr[1].'"';
 		}
-		return 'DROP GENERATOR "G_'.$t;
+		$t = substr($t, 1);
+		return 'DROP GENERATOR "s_'.$t;
 	}
 	
 
@@ -137,7 +138,7 @@ end;
 		  $sql[] = "CREATE GENERATOR \"$seqname\"";
 		  $sql[] = "ALTER TRIGGER \"$trigname\" BEFORE INSERT OR UPDATE AS BEGIN IF ( NEW.$seqField IS NULL OR NEW.$seqField = 0 ) THEN NEW.$seqField = GEN_ID(\"$seqname\", 1); END";
 		}
-		else
+		else if (isset($tableoptions['NEW']))
 		{ $sql[] = "CREATE GENERATOR \"$seqname\"";
 		  $sql[] = "CREATE TRIGGER \"$trigname\" FOR $tabname BEFORE INSERT OR UPDATE AS BEGIN IF ( NEW.$seqField IS NULL OR NEW.$seqField = 0 ) THEN NEW.$seqField = GEN_ID(\"$seqname\", 1); END";
 		}
