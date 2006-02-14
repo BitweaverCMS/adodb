@@ -161,6 +161,7 @@ class ADODB_mssql extends ADOConnection {
 	
 	function CreateSequence($seq='adodbseq',$start=1)
 	{
+		$this->Execute('BEGIN TRANSACTION adodbseq');
 		$start -= 1;
 		$this->Execute("create table $seq (id float(53))");
 		$ok = $this->Execute("insert into $seq with (tablock,holdlock) values($start)");
