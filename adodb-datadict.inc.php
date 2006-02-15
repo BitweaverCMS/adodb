@@ -245,7 +245,7 @@ class ADODB_DataDict {
 			return $quote . $name . $quote;
 		}
 		
-		return $name;
+		return '"'.$name.'"';
 	}
 	
 	function TableName($name)
@@ -493,7 +493,7 @@ class ADODB_DataDict {
 			$fconstraint = false;
 			$fnotnull = false;
 			$funsigned = false;
-			
+
 			//-----------------
 			// Parse attributes
 			foreach($fld as $attr => $v) {
@@ -525,11 +525,17 @@ class ADODB_DataDict {
 				case 'NOQUOTE': $fnoquote = $v; break;
 				case 'DEFDATE': $fdefdate = $v; break;
 				case 'DEFTIMESTAMP': $fdefts = $v; break;
-				case 'CONSTRAINT': if ( substr($this->connection->databaseType,0,8) != 'firebird' )
-										$fconstraint = str_replace('`','',$v); // strip backticks if not required
-									else
+				case 'CONSTRAINT':
+								switch( $this->connection->databaseType ) {
+									case 'firebird':
 										$fconstraint = $v;
 									break;
+									default:
+										// strip backticks if not required
+										$fconstraint = preg_replace( "/`+/", $this->connection->nameQuote, $v );
+									break;
+								}
+								break;
 				} //switch
 			} // foreach $fld
 			
@@ -539,7 +545,7 @@ class ADODB_DataDict {
 				if ($this->debug) ADOConnection::outp("Undefined NAME");
 				return false;
 			}
-			
+
 			$fid = strtoupper(preg_replace('/^`(.+)`$/', '$1', $fname));
 			$fname = $this->NameQuote($fname);
 			
