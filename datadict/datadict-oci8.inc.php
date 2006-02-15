@@ -185,16 +185,22 @@ end;
 	function _Triggers($tabname,$tableoptions)
 	{
 		if (!$this->seqField) return array();
-		
+
+		if( $quoted = strpos( $tabname, $this->connection->nameQuote ) !== FALSE ) {
+			$trigtabname = str_replace( $this->connection->nameQuote, '', $tabname );
+		} else {
+			$trigtabname = $tabname;
+		}
+			
 		if ($this->schema) {
-			$t = strpos($tabname,'.');
-			if ($t !== false) $tab = substr($tabname,$t+1);
+			$t = strpos($trigtabname,'.');
+			if ($t !== false) $tab = substr($trigtabname,$t+1);
 			else $tab = $tabname;
 			$seqname = $this->schema.'.'.$this->seqPrefix.$tab;
 			$trigname = $this->schema.'.'.$this->trigPrefix.$this->seqPrefix.$tab;
 		} else {
-			$seqname = $this->seqPrefix.$tabname;
-			$trigname = $this->trigPrefix.$seqname;
+			$seqname = $this->seqPrefix.$trigtabname;
+			$trigname = $this->trigPrefix.$trigtabname;
 		}
 		if (isset($tableoptions['REPLACE'])) $sql[] = "DROP SEQUENCE $seqname";
 		$seqCache = '';
