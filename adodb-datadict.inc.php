@@ -245,7 +245,7 @@ class ADODB_DataDict {
 			return $quote . $name . $quote;
 		}
 		
-		return '"'.$name.'"';
+		return $name;
 	}
 	
 	function TableName($name)
