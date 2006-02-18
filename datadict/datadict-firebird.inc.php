@@ -14,7 +14,7 @@ class ADODB2_firebird extends ADODB_DataDict {
 	
 	var $databaseType = 'firebird';
 	var $seqField = false;
-	var $seqPrefix = 's_';
+	var $seqPrefix = 'S_';
 	var $blobSize = 40000;	
  	
  	function ActualType($meta)
@@ -70,7 +70,7 @@ class ADODB2_firebird extends ADODB_DataDict {
 			return $quote . $name . $quote;
 		}
 		
-		return $quote . $name . $quote;
+		return $name;
 	}
 
 	function CreateDatabase($dbname, $options=false)
@@ -87,7 +87,7 @@ class ADODB2_firebird extends ADODB_DataDict {
 	{
 		if (strpos($t,'.') !== false) {
 			$tarr = explode('.',$t);
-			return 'DROP GENERATOR '.$tarr[0].'."g_'.$tarr[1].'"';
+			return 'DROP GENERATOR '.$tarr[0].'."G_'.$tarr[1].'"';
 		}
 		$t = substr($t, 1);
 		return 'DROP GENERATOR "s_'.$t;
@@ -127,11 +127,11 @@ end;
 			else $tab = $tab1;
 			$seqField = $this->seqField;
 			$seqname = $this->schema.'.'.$this->seqPrefix.$tab;
-			$trigname = $this->schema.'.t_'.$this->seqPrefix.$tab;
+			$trigname = $this->schema.'.T_'.$this->seqPrefix.$tab;
 		} else {
 			$seqField = $this->seqField;
 			$seqname = $this->seqPrefix.$tab1;
-			$trigname = 't_'.$seqname;
+			$trigname = 'T_'.$seqname;
 		}
 		if (isset($tableoptions['REPLACE']))
 		{ $sql[] = "DROP GENERATOR \"$seqname\"";
