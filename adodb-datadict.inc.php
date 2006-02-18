@@ -528,7 +528,7 @@ class ADODB_DataDict {
 				case 'CONSTRAINT':
 								switch( $this->connection->databaseType ) {
 									case 'firebird':
-										$fconstraint = $v;
+										$fconstraint = preg_replace( "/`+/", $this->connection->nameQuote, $v );
 									break;
 									default:
 										// strip backticks if not required
