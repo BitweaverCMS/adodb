@@ -726,11 +726,11 @@ class ADORecordset_ibase extends ADORecordSet
 			 	$fld->name = ($ibf['alias']);
 				 if (empty($fld->name)) $fld->name = ($ibf['name']);
 				 break;
-			 case 0: 
+			 case 1: 
 				 $fld->name = strtoupper($ibf['alias']);
 				 if (empty($fld->name)) $fld->name = strtoupper($ibf['name']);
 				 break;
-			 case 1: 
+			 case 0: 
 			 	$fld->name = strtolower($ibf['alias']);
 				 if (empty($fld->name)) $fld->name = strtolower($ibf['name']);
 				 break;
