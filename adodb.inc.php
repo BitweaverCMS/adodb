@@ -2003,14 +2003,23 @@
 			}
 			
 			for ($i=0; $i < sizeof($arr); $i++) {
+				$name = trim($arr[$i][0]);
+			 	switch (ADODB_ASSOC_CASE) {
+				 case 1: 
+				 	$name = strtoupper($name);
+					break;
+				 case 0: 
+			 		$name = strtolower($name);
+					break;
+			 	}
 				if ($hast) {
 					if ($showt == 0) {
-						if (strncmp($arr[$i][1],'T',1) == 0) $arr2[] = trim($arr[$i][0]);
+						if (strncmp($arr[$i][1],'T',1) == 0) $arr2[] = $name;
 					} else {
-						if (strncmp($arr[$i][1],'V',1) == 0) $arr2[] = trim($arr[$i][0]);
+						if (strncmp($arr[$i][1],'V',1) == 0) $arr2[] = $name;
 					}
 				} else
-					$arr2[] = trim($arr[$i][0]);
+					$arr2[] = $name;
 			}
 			$rs->Close();
 			return $arr2;
