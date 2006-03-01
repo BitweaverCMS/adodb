@@ -70,7 +70,7 @@ class ADODB2_firebird extends ADODB_DataDict {
 			return $quote . $name . $quote;
 		}
 		
-		return $name;
+		return $quote . $name . $quote;
 	}
 
 	function CreateDatabase($dbname, $options=false)
