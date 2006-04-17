@@ -87,10 +87,10 @@ class ADODB2_firebird extends ADODB_DataDict {
 	{
 		if (strpos($t,'.') !== false) {
 			$tarr = explode('.',$t);
-			return 'DROP GENERATOR '.$tarr[0].'."G_'.$tarr[1].'"';
+			return 'DROP GENERATOR '.$tarr[0].'.'.$this->connection->nameQuote.$this->seqPrefix.$tarr[1].$quote;
 		}
-		$t = substr($t, 1);
-		return 'DROP GENERATOR "s_'.$t;
+//		$t = substr($t, 1);
+		return 'DROP GENERATOR '.$this->connection->nameQuote.$this->seqPrefix.$t;
 	}
 	
 
@@ -133,14 +133,15 @@ end;
 			$seqname = $this->seqPrefix.$tab1;
 			$trigname = 'T_'.$seqname;
 		}
+		$quote = $this->connection->nameQuote;
 		if (isset($tableoptions['REPLACE']))
-		{ $sql[] = "DROP GENERATOR \"$seqname\"";
-		  $sql[] = "CREATE GENERATOR \"$seqname\"";
-		  $sql[] = "ALTER TRIGGER \"$trigname\" BEFORE INSERT OR UPDATE AS BEGIN IF ( NEW.$seqField IS NULL OR NEW.$seqField = 0 ) THEN NEW.$seqField = GEN_ID(\"$seqname\", 1); END";
+		{ $sql[] = "DROP GENERATOR ".$quote.$seqname.$quote;
+		  $sql[] = "CREATE GENERATOR ".$quote.$seqname.$quote;
+		  $sql[] = "ALTER TRIGGER ".$quote.$trigname.$quote." BEFORE INSERT OR UPDATE AS BEGIN IF ( NEW.$seqField IS NULL OR NEW.$seqField = 0 ) THEN NEW.$seqField = GEN_ID(".$quote.$seqname.$quote.", 1); END";
 		}
 		else if (isset($tableoptions['NEW']))
-		{ $sql[] = "CREATE GENERATOR \"$seqname\"";
-		  $sql[] = "CREATE TRIGGER \"$trigname\" FOR $tabname BEFORE INSERT OR UPDATE AS BEGIN IF ( NEW.$seqField IS NULL OR NEW.$seqField = 0 ) THEN NEW.$seqField = GEN_ID(\"$seqname\", 1); END";
+		{ $sql[] = "CREATE GENERATOR ".$quote.$seqname.$quote;
+		  $sql[] = "CREATE TRIGGER ".$quote.$trigname.$quote." FOR $tabname BEFORE INSERT OR UPDATE AS BEGIN IF ( NEW.$seqField IS NULL OR NEW.$seqField = 0 ) THEN NEW.$seqField = GEN_ID(".$quote.$seqname.$quote.", 1); END";
 		}
 		
 		$this->seqField = false;
