@@ -526,7 +526,17 @@ class ADODB_DataDict {
 				case 'NOQUOTE': $fnoquote = $v; break;
 				case 'DEFDATE': $fdefdate = $v; break;
 				case 'DEFTIMESTAMP': $fdefts = $v; break;
-				case 'CONSTRAINT': $fconstraint = $v; break;
+				case 'CONSTRAINT':
+								switch( $this->connection->databaseType ) {
+									case 'firebird':
+										$fconstraint = preg_replace( "/`+/", $this->connection->nameQuote, $v );
+									break;
+									default:
+										// strip backticks if not required
+										$fconstraint = preg_replace( "/`+/", $this->connection->nameQuote, $v );
+									break;
+								}
+								break;
 				} //switch
 			} // foreach $fld
 			
