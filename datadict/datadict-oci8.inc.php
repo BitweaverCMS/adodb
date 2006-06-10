@@ -1,7 +1,7 @@
 <?php
 
 /**
-  V4.70 06 Jan 2006  (c) 2000-2006 John Lim (jlim@natsoft.com.my). All rights reserved.
+  V4.90 8 June 2006  (c) 2000-2006 John Lim (jlim#natsoft.com.my). All rights reserved.
   Released under both BSD license and Lesser GPL library license. 
   Whenever there is any discrepancy between the two licenses, 
   the BSD license will take precedence.
@@ -185,22 +185,16 @@ end;
 	function _Triggers($tabname,$tableoptions)
 	{
 		if (!$this->seqField) return array();
-
-		if( $quoted = strpos( $tabname, $this->connection->nameQuote ) !== FALSE ) {
-			$trigtabname = str_replace( $this->connection->nameQuote, '', $tabname );
-		} else {
-			$trigtabname = $tabname;
-		}
-			
+		
 		if ($this->schema) {
-			$t = strpos($trigtabname,'.');
-			if ($t !== false) $tab = substr($trigtabname,$t+1);
+			$t = strpos($tabname,'.');
+			if ($t !== false) $tab = substr($tabname,$t+1);
 			else $tab = $tabname;
 			$seqname = $this->schema.'.'.$this->seqPrefix.$tab;
 			$trigname = $this->schema.'.'.$this->trigPrefix.$this->seqPrefix.$tab;
 		} else {
-			$seqname = $this->seqPrefix.$trigtabname;
-			$trigname = $this->trigPrefix.$trigtabname;
+			$seqname = $this->seqPrefix.$tabname;
+			$trigname = $this->trigPrefix.$seqname;
 		}
 		if (isset($tableoptions['REPLACE'])) $sql[] = "DROP SEQUENCE $seqname";
 		$seqCache = '';

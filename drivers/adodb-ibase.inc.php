@@ -1,6 +1,6 @@
 <?php
 /*
-V4.70 06 Jan 2006  (c) 2000-2006 John Lim (jlim@natsoft.com.my). All rights reserved.  
+V4.90 8 June 2006  (c) 2000-2006 John Lim (jlim#natsoft.com.my). All rights reserved.  
   Released under both BSD license and Lesser GPL library license. 
   Whenever there is any discrepancy between the two licenses, 
   the BSD license will take precedence.
@@ -57,7 +57,6 @@ class ADODB_ibase extends ADOConnection {
 	function ADODB_ibase() 
 	{
 		 if (defined('IBASE_DEFAULT')) $this->ibasetrans = IBASE_DEFAULT;
-		 else $this->ibasetrans = IBASE_WAIT | IBASE_REC_VERSION | IBASE_COMMITTED;
   	}
 	
 	
@@ -139,7 +138,7 @@ class ADODB_ibase extends ADOConnection {
 		if ($this->transOff) return true;
 		$this->transCnt += 1;
 		$this->autoCommit = false;
-	 	$this->_transactionID = ibase_trans($this->ibasetrans, $this->_connectionID); //$this->_connectionID;//
+	 	$this->_transactionID = $this->_connectionID;//ibase_trans($this->ibasetrans, $this->_connectionID);
 		return $this->_transactionID;
 	}
 	
@@ -559,7 +558,7 @@ class ADODB_ibase extends ADOConnection {
 	// still used to auto-decode all blob's
 	function _BlobDecode( $blob ) 
 	{
-		$blobid = ibase_blob_open( $blob );
+		$blobid = ibase_blob_open($this->_connectionID, $blob );
 		$realblob = ibase_blob_get( $blobid,$this->maxblobsize); // 2nd param is max size of blob -- Kevin Boillet <kevinboillet@yahoo.fr>
 		while($string = ibase_blob_get($blobid, 8192)){ 
 			$realblob .= $string; 
@@ -727,11 +726,11 @@ class ADORecordset_ibase extends ADORecordSet
 			 	$fld->name = ($ibf['alias']);
 				 if (empty($fld->name)) $fld->name = ($ibf['name']);
 				 break;
-			 case 1: 
+			 case 0: 
 				 $fld->name = strtoupper($ibf['alias']);
 				 if (empty($fld->name)) $fld->name = strtoupper($ibf['name']);
 				 break;
-			 case 0: 
+			 case 1: 
 			 	$fld->name = strtolower($ibf['alias']);
 				 if (empty($fld->name)) $fld->name = strtolower($ibf['name']);
 				 break;

@@ -1,6 +1,6 @@
 <?php
 /*
-  V4.70 06 Jan 2006  (c) 2000-2006 John Lim (jlim@natsoft.com.my). All rights reserved.
+  V4.90 8 June 2006  (c) 2000-2006 John Lim (jlim#natsoft.com.my). All rights reserved.
   Released under both BSD license and Lesser GPL library license.
   Whenever there is any discrepancy between the two licenses,
   the BSD license will take precedence. See License.txt.
@@ -312,6 +312,7 @@ class ADODB_odbtp extends ADOConnection{
 			$false = false;
 			return $false;
 		}
+		$retarr = array();
 		while (!$rs->EOF) {
 			//print_r($rs->fields);
 			if (strtoupper($rs->fields[2]) == $table) {
@@ -326,7 +327,7 @@ class ADODB_odbtp extends ADOConnection{
  					$fld->default_value = $rs->fields[12];
 				}
 				$retarr[strtoupper($fld->name)] = $fld;
-			} else if (sizeof($retarr)>0)
+			} else if (!empty($retarr))
 				break;
 			$rs->MoveNext();
 		}
