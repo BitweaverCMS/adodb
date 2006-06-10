@@ -12,7 +12,7 @@
  *
  * Last Editor: $Author: squareing $
  * @author Richard Tango-Lowy & Dan Cech
- * @version $Revision: 1.1.1.1.2.2 $
+ * @version $Revision: 1.1.1.1.2.3 $
  *
  * @package axmls
  * @tutorial getting_started.pkg
@@ -1209,7 +1209,7 @@ class dbQuerySet extends dbObject {
 * @tutorial getting_started.pkg
 *
 * @author Richard Tango-Lowy & Dan Cech
-* @version $Revision: 1.1.1.1.2.2 $
+* @version $Revision: 1.1.1.1.2.3 $
 *
 * @package axmls
 */
@@ -1443,6 +1443,10 @@ class adoSchema {
 		
 		if ( $returnSchema )
 		{
+			$xmlstring = '';
+			while( $data = fread( $fp, 100000 ) ) {
+				$xmlstring .= $data;
+			}
 			return $xmlstring;
 		}
 		

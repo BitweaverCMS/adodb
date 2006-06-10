@@ -1,7 +1,7 @@
 <?php
 
 /**
-  V4.70 06 Jan 2006  (c) 2000-2006 John Lim (jlim@natsoft.com.my). All rights reserved.
+  V4.90 8 June 2006  (c) 2000-2006 John Lim (jlim#natsoft.com.my). All rights reserved.
   Released under both BSD license and Lesser GPL library license. 
   Whenever there is any discrepancy between the two licenses, 
   the BSD license will take precedence.
@@ -61,6 +61,7 @@ function Lens_ParseArgs($args,$endstmtchar=',',$tokenchars='_.-')
 	$tokens[$stmtno] = array();
 	$max = strlen($args);
 	$quoted = false;
+	$tokarr = array();
 	
 	while ($pos < $max) {
 		$ch = substr($args,$pos,1);
@@ -525,11 +526,7 @@ class ADODB_DataDict {
 				case 'NOQUOTE': $fnoquote = $v; break;
 				case 'DEFDATE': $fdefdate = $v; break;
 				case 'DEFTIMESTAMP': $fdefts = $v; break;
-				case 'CONSTRAINT': if ( substr($this->connection->databaseType,0,8) != 'firebird' )
-										$fconstraint = str_replace('`','',$v); // strip backticks if not required
-									else
-										$fconstraint = $v;
-									break;
+				case 'CONSTRAINT': $fconstraint = $v; break;
 				} //switch
 			} // foreach $fld
 			
