@@ -2,6 +2,7 @@
 
 /**
   V4.90 8 June 2006  (c) 2000-2006 John Lim (jlim#natsoft.com.my). All rights reserved.
+  Modified to work with bitweaver framework - lsces
   Released under both BSD license and Lesser GPL library license. 
   Whenever there is any discrepancy between the two licenses, 
   the BSD license will take precedence.
@@ -14,18 +15,18 @@ class ADODB2_firebird extends ADODB_DataDict {
 	
 	var $databaseType = 'firebird';
 	var $seqField = false;
-	var $seqPrefix = 'gen_';
+	var $seqPrefix = 's_';
 	var $blobSize = 40000;	
  	
  	function ActualType($meta)
 	{
 		switch($meta) {
 		case 'C': return 'VARCHAR';
-		case 'XL': return 'VARCHAR(32000)'; 
-		case 'X': return 'VARCHAR(4000)'; 
+		case 'XL':
+		case 'X': return 'BLOB SUB_TYPE TEXT'; 
 		
-		case 'C2': return 'VARCHAR'; // up to 32K
-		case 'X2': return 'VARCHAR(4000)';
+		case 'C2': return 'VARCHAR(32765)'; // up to 32K
+		case 'X2': return 'VARCHAR(4096)';
 		
 		case 'B': return 'BLOB';
 			
@@ -87,9 +88,10 @@ class ADODB2_firebird extends ADODB_DataDict {
 	{
 		if (strpos($t,'.') !== false) {
 			$tarr = explode('.',$t);
-			return 'DROP GENERATOR '.$tarr[0].'."gen_'.$tarr[1].'"';
+			return 'DROP GENERATOR '.$tarr[0].'."s_'.$tarr[1].'"';
 		}
-		return 'DROP GENERATOR "GEN_'.$t;
+		$t = substr($t, 1);
+		return 'DROP GENERATOR "s_'.$t;
 	}
 	
 
@@ -100,6 +102,7 @@ class ADODB2_firebird extends ADODB_DataDict {
 		if (strlen($fdefault)) $suffix .= " DEFAULT $fdefault";
 		if ($fnotnull) $suffix .= ' NOT NULL';
 		if ($fautoinc) $this->seqField = $fname;
+		$fconstraint = preg_replace("/``/", "\"", $fconstraint);
 		if ($fconstraint) $suffix .= ' '.$fconstraint;
 		
 		return $suffix;
@@ -125,18 +128,18 @@ end;
 			else $tab = $tab1;
 			$seqField = $this->seqField;
 			$seqname = $this->schema.'.'.$this->seqPrefix.$tab;
-			$trigname = $this->schema.'.trig_'.$this->seqPrefix.$tab;
+			$trigname = $this->schema.'.t_'.$this->seqPrefix.$tab;
 		} else {
 			$seqField = $this->seqField;
 			$seqname = $this->seqPrefix.$tab1;
-			$trigname = 'trig_'.$seqname;
+			$trigname = 't_'.$seqname;
 		}
 		if (isset($tableoptions['REPLACE']))
 		{ $sql[] = "DROP GENERATOR \"$seqname\"";
 		  $sql[] = "CREATE GENERATOR \"$seqname\"";
 		  $sql[] = "ALTER TRIGGER \"$trigname\" BEFORE INSERT OR UPDATE AS BEGIN IF ( NEW.$seqField IS NULL OR NEW.$seqField = 0 ) THEN NEW.$seqField = GEN_ID(\"$seqname\", 1); END";
 		}
-		else
+		else if (isset($tableoptions['NEW']))
 		{ $sql[] = "CREATE GENERATOR \"$seqname\"";
 		  $sql[] = "CREATE TRIGGER \"$trigname\" FOR $tabname BEFORE INSERT OR UPDATE AS BEGIN IF ( NEW.$seqField IS NULL OR NEW.$seqField = 0 ) THEN NEW.$seqField = GEN_ID(\"$seqname\", 1); END";
 		}
