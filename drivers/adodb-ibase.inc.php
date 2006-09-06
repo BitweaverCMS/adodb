@@ -57,6 +57,7 @@ class ADODB_ibase extends ADOConnection {
 	function ADODB_ibase() 
 	{
 		 if (defined('IBASE_DEFAULT')) $this->ibasetrans = IBASE_DEFAULT;
+		 else $this->ibasetrans = IBASE_WAIT | IBASE_REC_VERSION | IBASE_COMMITTED;
   	}
 	
 	
@@ -138,7 +139,7 @@ class ADODB_ibase extends ADOConnection {
 		if ($this->transOff) return true;
 		$this->transCnt += 1;
 		$this->autoCommit = false;
-	 	$this->_transactionID = $this->_connectionID;//ibase_trans($this->ibasetrans, $this->_connectionID);
+	 	$this->_transactionID = ibase_trans($this->ibasetrans, $this->_connectionID); //$this->_connectionID;//
 		return $this->_transactionID;
 	}
 	
