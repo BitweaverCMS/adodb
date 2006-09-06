@@ -49,8 +49,8 @@ class ADODB_ibase extends ADOConnection {
 	var $sysDate = "cast('TODAY' as timestamp)";
 	var $sysTimeStamp = "cast('NOW' as timestamp)";
 	var $ansiOuter = true;
-	var $hasAffectedRows = false;
-	var $poorAffectedRows = true;
+	var $hasAffectedRows = true;
+	var $poorAffectedRows = false;
 	var $blobEncodeType = 'C';
 	var $role = false;
 	
@@ -157,6 +157,11 @@ class ADODB_ibase extends ADOConnection {
 		return $ret;
 	}
 	
+	function _affectedrows()
+	{
+			return ibase_affected_rows($this->_connectionID);
+	}
+  
 	// there are some compat problems with ADODB_COUNTRECS=false and $this->_logsql currently.
 	// it appears that ibase extension cannot support multiple concurrent queryid's
 	function &_Execute($sql,$inputarr=false) 
