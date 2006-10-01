@@ -44,7 +44,7 @@
  */
  
 define('ADODB_PEAR',dirname(__FILE__));
-include_once "PEAR.php";
+//include_once "PEAR.php";
 include_once ADODB_PEAR."/adodb-errorpear.inc.php";
 include_once ADODB_PEAR."/adodb.inc.php";
 
@@ -89,6 +89,8 @@ define('DB_GETMODE_ASSOC',   DB_FETCHMODE_ASSOC);
 define('DB_TABLEINFO_ORDER', 1);
 define('DB_TABLEINFO_ORDERTABLE', 2);
 define('DB_TABLEINFO_FULL', 3);
+
+define('DB_PORTABILITY_ALL', 63);
 }
 
 /**

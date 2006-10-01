@@ -10,7 +10,7 @@
  * Latest version is available at http://php.weblogs.com
  * 
 */
-include_once('PEAR.php');
+//include_once('PEAR.php');
 
 if (!defined('ADODB_ERROR_HANDLER')) define('ADODB_ERROR_HANDLER','ADODB_Error_PEAR');
 
@@ -64,12 +64,12 @@ global $ADODB_Last_PEAR_Error;
 		$s = "$dbms error: [$errno: $errmsg] in $fn($p1, $p2)";
 		break;
 	}
-	
+	print($s);
 	$class = ADODB_PEAR_ERROR_CLASS;
-	$ADODB_Last_PEAR_Error = new $class($s, $errno,
-		$GLOBALS['_PEAR_default_error_mode'],
-		$GLOBALS['_PEAR_default_error_options'], 
-		$errmsg);
+//	$ADODB_Last_PEAR_Error = new $class($s, $errno,
+//		$GLOBALS['_PEAR_default_error_mode'],
+//		$GLOBALS['_PEAR_default_error_options'], 
+//		$errmsg);
 		
 	//print "<p>!$s</p>";
 }
