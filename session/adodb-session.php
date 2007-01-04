@@ -861,8 +861,10 @@ class ADODB_Session {
 				$sql = "SELECT sesskey FROM $table WHERE expiry < $time";
 				$arr =& $conn->GetAll($sql);
 				foreach ($arr as $row) {
-					$sql2 = "DELETE FROM $table WHERE sesskey='$row[0]'";
-					$conn->Execute($sql2);
+					if ($row && is_array($row) && isset($row[0])) {
+						$sql2 = "DELETE FROM $table WHERE sesskey='$row[0]'";
+						$conn->Execute($sql2);
+					}
 				}
 			} else {
 				$sql = "DELETE FROM $table WHERE expiry < $time";
