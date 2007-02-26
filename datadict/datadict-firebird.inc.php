@@ -38,7 +38,7 @@ class ADODB2_firebird extends ADODB_DataDict {
 		case 'I1': return 'SMALLINT';
 		case 'I2': return 'SMALLINT';
 		case 'I4': return 'INTEGER';
-		case 'I8': return 'INTEGER';
+		case 'I8': return 'BIGINT';
 		
 		case 'F': return 'DOUBLE PRECISION';
 		case 'N': return 'DECIMAL';
