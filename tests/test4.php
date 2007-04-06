@@ -1,7 +1,7 @@
 <?php
 
 /** 
- * @version V4.50 6 July 2004 (c) 2000-2006 John Lim (jlim#natsoft.com.my). All rights reserved.
+ * @version V4.50 6 July 2004 (c) 2000-2007 John Lim (jlim#natsoft.com.my). All rights reserved.
  * Released under both BSD license and Lesser GPL library license. 
  * Whenever there is any discrepancy between the two licenses, 
  * the BSD license will take precedence. 
@@ -39,9 +39,18 @@ FROM ADOXYZ WHERE id = -1";
 $conn = &ADONewConnection("mysql");  // create a connection
 $conn->PConnect("localhost", "root", "", "test"); // connect to MySQL, testdb
 
-$conn =& ADONewConnection('oci8po');
-$conn->Connect('','scott','natsoft');
+
+#$conn =& ADONewConnection('oci8po');
+#$conn->Connect('','scott','natsoft');
+
+if (PHP_VERSION  >= 5) {
+	$connstr = "mysql:dbname=northwind";
+	$u = 'root';$p='';
+	$conn =& ADONewConnection('pdo');
+	$conn->Connect($connstr, $u, $p);
+}
 //$ADODB_FETCH_MODE = ADODB_FETCH_ASSOC;
+
 
 $conn->debug=1;
 $conn->Execute("delete from adoxyz where lastname like 'Smi%'");

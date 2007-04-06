@@ -1,7 +1,7 @@
 <?php
   
 /*
-V4.80 8 Mar 2006  (c) 2000-2006 John Lim (jlim#natsoft.com.my). All rights reserved.
+V4.80 8 Mar 2006  (c) 2000-2007 John Lim (jlim#natsoft.com.my). All rights reserved.
   Released under both BSD license and Lesser GPL library license. 
   Whenever there is any discrepancy between the two licenses, 
   the BSD license will take precedence.
@@ -294,13 +294,17 @@ if (!empty($testproxy)){
 
 ADOLoadCode('oci805');
 ADOLoadCode("oci8po");
+	
 if (!empty($testoracle)) {
 	$dsn = "oci8po://juris10:natsoft@sherkhan?persist";
-	$db = ADONewConnection($dsn);
+	$db = ADONewConnection($dsn );//'oci8');
+	
+	//$db->debug=1;
 	print "<h1>Connecting $db->databaseType...</h1>";
 	if (true || $db->Connect('', "scott", "natsoft",''))
 		testdb($db,"create table ADOXYZ (id int, firstname varchar(24), lastname varchar(24),created date)");
-	else print "ERROR: Oracle test requires an Oracle server setup with scott/natsoft".'<BR>'.$db->ErrorMsg();
+	else 
+		print "ERROR: Oracle test requires an Oracle server setup with scott/natsoft".'<BR>'.$db->ErrorMsg();
 
 }
 ADOLoadCode("oracle"); // no longer supported
