@@ -90,8 +90,8 @@ class ADODB2_firebird extends ADODB_DataDict {
 			$tarr = explode('.',$t);
 			return 'DROP GENERATOR '.$tarr[0].'."s_'.$tarr[1].'"';
 		}
-		$t = substr($t, 1);
-		return 'DROP GENERATOR "s_'.$t;
+		// $t = substr($t, 1); strip backtick - not now used in Firebird datadict
+		return 'DROP GENERATOR s_'.$t;
 	}
 	
 
@@ -107,7 +107,36 @@ class ADODB2_firebird extends ADODB_DataDict {
 		
 		return $suffix;
 	}
+
+	/**
+	 Generate the SQL to create table. Returns an array of sql strings.
+	*/
+	function CreateTableSQL($tabname, $flds, $tableoptions=array())
+	{
+		list($lines,$pkey,$idxs) = $this->_GenFields($flds, true);
+		// genfields can return FALSE at times
+		if ($lines == null) $lines = array();
+		
+		$taboptions = $this->_Options($tableoptions);
+		$tabname = $this->TableName ($tabname);
+		$sql = $this->_TableSQL($tabname,$lines,$pkey,$taboptions);
+		
+        if ($this->autoIncrement && !isset($taboptions['DROP']))
+		{ $tsql = $this->_Triggers($tabname,$taboptions);
+			foreach($tsql as $s) $sql[] = $s;
+		}
+		
+		if (is_array($idxs)) {
+			foreach($idxs as $idx => $idxdef) {
+				$sql_idxs = $this->CreateIndexSql($idx, $tabname,  $idxdef['cols'], $idxdef['opts']);
+				$sql = array_merge($sql, $sql_idxs);
+			}
+		}
+
+		return $sql;
+	}
 	
+
 /*
 CREATE or replace TRIGGER jaddress_insert
 before insert on jaddress
@@ -134,12 +163,11 @@ end;
 			$seqname = $this->seqPrefix.$tab1;
 			$trigname = 't_'.$seqname;
 		}
-		if (isset($tableoptions['REPLACE']))
+
+		if (isset($tableoptions['DROP']))
 		{ $sql[] = "DROP GENERATOR $seqname";
-		  $sql[] = "CREATE GENERATOR $seqname";
-		  $sql[] = "ALTER TRIGGER $trigname BEFORE INSERT OR UPDATE AS BEGIN IF ( NEW.$seqField IS NULL OR NEW.$seqField = 0 ) THEN NEW.$seqField = GEN_ID($seqname, 1); END";
 		}
-		else if (isset($tableoptions['NEW']))
+		else
 		{ $sql[] = "CREATE GENERATOR $seqname";
 		  $sql[] = "CREATE TRIGGER $trigname FOR $tabname BEFORE INSERT OR UPDATE AS BEGIN IF ( NEW.$seqField IS NULL OR NEW.$seqField = 0 ) THEN NEW.$seqField = GEN_ID($seqname, 1); END";
 		}

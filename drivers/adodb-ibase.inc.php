@@ -266,7 +266,7 @@ class ADODB_ibase extends ADOConnection {
 	function DropSequence($seqname)
 	{
 		$seqname = strtoupper($seqname);
-		$this->Execute("DROP GENERATOR $seqname");
+		return $this->Execute("DROP GENERATOR $seqname");
 	}
 	
 	function GenID($seqname='adodbseq',$startID=1)
