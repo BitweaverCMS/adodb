@@ -4126,6 +4126,7 @@ http://www.stanford.edu/dept/itss/docs/oracle/10g/server.101/b10759/statements_1
 		case 'odbtp':   if (strncmp('odbtp_',$drivername,6)==0) return substr($drivername,6); 
 		case 'odbc' :   if (strncmp('odbc_',$drivername,5)==0) return substr($drivername,5); 
 		case 'ado'  :   if (strncmp('ado_',$drivername,4)==0) return substr($drivername,4);
+		case 'ibase':  break;
 		case 'native':  break;
 		default:
 			return $provider;
