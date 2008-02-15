@@ -27,6 +27,7 @@ class ADODB2_firebird extends ADODB_DataDict {
 		
 		case 'C2': return 'VARCHAR(32765)'; // up to 32K
 		case 'X2': return 'VARCHAR(4096)';
+		case 'V': return 'CHAR';
 		
 		case 'B': return 'BLOB';
 			
