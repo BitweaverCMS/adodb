@@ -276,7 +276,7 @@ class ADODB_mssql extends ADOConnection {
 	
 	function BeginTrans()
 	{
-		if ($this->transOff > 0) return true; 
+//		if ($this->transOff) return true; 
 		$this->transCnt += 1;
 	   	$this->Execute('BEGIN TRAN');
 	   	return true;
@@ -284,7 +284,7 @@ class ADODB_mssql extends ADOConnection {
 		
 	function CommitTrans($ok=true) 
 	{ 
-		if ($this->transOff > 0) return true; 
+//		if ($this->transOff) return true; 
 		if (!$ok) return $this->RollbackTrans();
 		if ($this->transCnt) $this->transCnt -= 1;
 		$this->Execute('COMMIT TRAN');
@@ -292,7 +292,7 @@ class ADODB_mssql extends ADOConnection {
 	}
 	function RollbackTrans()
 	{
-		if ($this->transOff > 0) return true; 
+//		if ($this->transOff) return true; 
 		if ($this->transCnt) $this->transCnt -= 1;
 		$this->Execute('ROLLBACK TRAN');
 		return true;
