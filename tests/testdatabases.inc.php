@@ -93,7 +93,7 @@ if (!empty($testibase)) {
 	//$_GET['nolog'] = true;
 	$db = &ADONewConnection('firebird');
 	print "<h1>Connecting $db->databaseType...</h1>";
-	if ($db->PConnect("localhost:d:\\firebird\\151\\examples\\EMPLOYEE.fdb", "sysdba", "masterkey", ""))
+	if ($db->PConnect("localhost:employee", "sysdba", "no_go_pa", ""))
 		testdb($db,"create table ADOXYZ (id integer, firstname char(24), lastname char(24),price numeric(12,2),created date)");
 	 else print "ERROR: Interbase test requires a database called employee.gdb".'<BR>'.$db->ErrorMsg();
 	
