@@ -1,7 +1,7 @@
 <?php
 
 /**
-  V4.94 23 Jan 2007  (c) 2000-2007 John Lim (jlim#natsoft.com.my). All rights reserved.
+  v4.991 16 Oct 2008  (c) 2000-2008 John Lim (jlim#natsoft.com). All rights reserved.
   Released under both BSD license and Lesser GPL library license. 
   Whenever there is any discrepancy between the two licenses, 
   the BSD license will take precedence.
@@ -215,9 +215,117 @@ class ADODB_DataDict {
 		return $this->connection->MetaIndexes($this->TableName($table), $primary, $owner);
 	}
 	
+
 	function MetaType($t,$len=-1,$fieldobj=false)
-	{
-		return ADORecordSet::MetaType($t,$len,$fieldobj);
+	{		
+		static $typeMap = array(
+		'VARCHAR' => 'C',
+		'VARCHAR2' => 'C',
+		'CHAR' => 'C',
+		'C' => 'C',
+		'STRING' => 'C',
+		'NCHAR' => 'C',
+		'NVARCHAR' => 'C',
+		'VARYING' => 'C',
+		'BPCHAR' => 'C',
+		'CHARACTER' => 'C',
+		'INTERVAL' => 'C',  # Postgres
+		'MACADDR' => 'C', # postgres
+		##
+		'LONGCHAR' => 'X',
+		'TEXT' => 'X',
+		'NTEXT' => 'X',
+		'M' => 'X',
+		'X' => 'X',
+		'CLOB' => 'X',
+		'NCLOB' => 'X',
+		'LVARCHAR' => 'X',
+		##
+		'BLOB' => 'B',
+		'IMAGE' => 'B',
+		'BINARY' => 'B',
+		'VARBINARY' => 'B',
+		'LONGBINARY' => 'B',
+		'B' => 'B',
+		##
+		'YEAR' => 'D', // mysql
+		'DATE' => 'D',
+		'D' => 'D',
+		##
+		'UNIQUEIDENTIFIER' => 'C', # MS SQL Server
+		##
+		'TIME' => 'T',
+		'TIMESTAMP' => 'T',
+		'DATETIME' => 'T',
+		'TIMESTAMPTZ' => 'T',
+		'T' => 'T',
+		'TIMESTAMP WITHOUT TIME ZONE' => 'T', // postgresql
+		##
+		'BOOL' => 'L',
+		'BOOLEAN' => 'L', 
+		'BIT' => 'L',
+		'L' => 'L',
+		##
+		'COUNTER' => 'R',
+		'R' => 'R',
+		'SERIAL' => 'R', // ifx
+		'INT IDENTITY' => 'R',
+		##
+		'INT' => 'I',
+		'INT2' => 'I',
+		'INT4' => 'I',
+		'INT8' => 'I',
+		'INTEGER' => 'I',
+		'INTEGER UNSIGNED' => 'I',
+		'SHORT' => 'I',
+		'TINYINT' => 'I',
+		'SMALLINT' => 'I',
+		'I' => 'I',
+		##
+		'LONG' => 'N', // interbase is numeric, oci8 is blob
+		'BIGINT' => 'N', // this is bigger than PHP 32-bit integers
+		'DECIMAL' => 'N',
+		'DEC' => 'N',
+		'REAL' => 'N',
+		'DOUBLE' => 'N',
+		'DOUBLE PRECISION' => 'N',
+		'SMALLFLOAT' => 'N',
+		'FLOAT' => 'N',
+		'NUMBER' => 'N',
+		'NUM' => 'N',
+		'NUMERIC' => 'N',
+		'MONEY' => 'N',
+		
+		## informix 9.2
+		'SQLINT' => 'I', 
+		'SQLSERIAL' => 'I', 
+		'SQLSMINT' => 'I', 
+		'SQLSMFLOAT' => 'N', 
+		'SQLFLOAT' => 'N', 
+		'SQLMONEY' => 'N', 
+		'SQLDECIMAL' => 'N', 
+		'SQLDATE' => 'D', 
+		'SQLVCHAR' => 'C', 
+		'SQLCHAR' => 'C', 
+		'SQLDTIME' => 'T', 
+		'SQLINTERVAL' => 'N', 
+		'SQLBYTES' => 'B', 
+		'SQLTEXT' => 'X',
+		 ## informix 10
+		"SQLINT8" => 'I8',
+		"SQLSERIAL8" => 'I8',
+		"SQLNCHAR" => 'C',
+		"SQLNVCHAR" => 'C',
+		"SQLLVARCHAR" => 'X',
+		"SQLBOOL" => 'L'
+		);
+		
+		if (!$this->connection->IsConnected()) {
+			$t = strtoupper($t);
+			if (isset($typeMap[$t])) return $typeMap[$t];
+			return 'N';
+		}
+		return $this->connection->MetaType($t,$len,$fieldobj);
 	}
 	
 	function NameQuote($name = NULL,$allowBrackets=false)
@@ -580,17 +688,8 @@ class ADODB_DataDict {
 				case 'NOQUOTE': $fnoquote = $v; break;
 				case 'DEFDATE': $fdefdate = $v; break;
 				case 'DEFTIMESTAMP': $fdefts = $v; break;
-				case 'CONSTRAINT':
-								switch( $this->connection->databaseType ) {
-									case 'firebird':
-										$fconstraint = preg_replace( "/`+/", $this->connection->nameQuote, $v );
-									break;
-									default:
-										// strip backticks if not required
-										$fconstraint = preg_replace( "/`+/", $this->connection->nameQuote, $v );
-									break;
-								}
-								break;
+				case 'CONSTRAINT': $fconstraint = $v; break;
+				// let INDEX keyword create a 'very standard' index on column
 				case 'INDEX': $findex = $v; break;
 				case 'UNIQUE': $funiqueindex = true; break;
 				} //switch
@@ -882,8 +981,11 @@ class ADODB_DataDict {
 				$flds = Lens_ParseArgs($v,',');
 				
 				//  We are trying to change the size of the field, if not allowed, simply ignore the request.
-				if ($flds && in_array(strtoupper(substr($flds[0][1],0,4)),$this->invalidResizeTypes4)) {
-					echo "<h3>$this->alterCol cannot be changed to $flds currently</h3>";
+				// $flds[1] holds the type, $flds[2] holds the size -postnuke addition
+				if ($flds && in_array(strtoupper(substr($flds[0][1],0,4)),$this->invalidResizeTypes4)
+				 && (isset($flds[0][2]) && is_numeric($flds[0][2]))) {
+					if ($this->debug) ADOConnection::outp(sprintf("<h3>%s cannot be changed to %s currently</h3>", $flds[0][0], $flds[0][1]));
+					#echo "<h3>$this->alterCol cannot be changed to $flds currently</h3>";
 					continue;	 
 	 			}
 				$sql[] = $alter . $this->alterCol . ' ' . $v;

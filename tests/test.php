@@ -1,6 +1,6 @@
 <?php
 /* 
-V4.80 8 Mar 2006  (c) 2000-2007 John Lim (jlim#natsoft.com.my). All rights reserved.
+V4.80 8 Mar 2006  (c) 2000-2008 John Lim (jlim#natsoft.com). All rights reserved.
   Released under both BSD license and Lesser GPL library license. 
   Whenever there is any discrepancy between the two licenses, 
   the BSD license will take precedence. 
@@ -10,8 +10,9 @@ V4.80 8 Mar 2006  (c) 2000-2007 John Lim (jlim#natsoft.com.my). All rights reser
 */
 
 
-if (!defined('E_STRICT')) define('E_STRICT',0);
-error_reporting(E_ALL|E_STRICT);
+if (!defined('E_STRICT')) define('E_STRICT',E_NOTICE);
+#error_reporting(E_ALL|E_STRICT);
+error_reporting(E_ALL);
 
 $ADODB_FLUSH = true;
 
@@ -134,7 +135,7 @@ FROM `nuke_stories` `t1`, `nuke_authors` `t2`, `nuke_stories_cat` `t3`, `nuke_to
 	$arr = $db->ServerInfo();
 	print_r($arr);
 	echo E_ALL,' ',E_STRICT, "<br>";
-	$e = error_reporting(E_ALL | E_STRICT);
+	#$e = error_reporting(E_ALL | E_STRICT);
 	echo error_reporting(),'<p>';
 	flush();
 	#$db->debug=1;
@@ -1327,8 +1328,8 @@ END Adodb;
 		rs2tabout($rs);
 		print "</pre>";
 	}
-	print " CacheFlush ";
-	$db->CacheFlush();
+	#print " CacheFlush ";
+	#$db->CacheFlush();
 	
 	$date = $db->SQLDate('d-m-M-Y-\QQ h:i:s A');
 	$sql = "SELECT $date from ADOXYZ";
@@ -1729,15 +1730,18 @@ Test <a href=test4.php>GetInsertSQL/GetUpdateSQL</a> &nbsp;
 	<a href=testpaging.php>Paging</a> &nbsp;
 	<a href=test-perf.php>Perf Monitor</a><p>
 <?php
-include('./testdatabases.inc.php');
-
-echo "<br>vers=",ADOConnection::Version();
 
 
 include_once('../adodb-time.inc.php');
 if (isset($_GET['time'])) adodb_date_test();
 
+include('./testdatabases.inc.php');
+
+echo "<br>vers=",ADOConnection::Version();
+
+
+
 ?>
-<p><i>ADODB Database Library  (c) 2000-2007 John Lim. All rights reserved. Released under BSD and LGPL, PHP <?php echo PHP_VERSION ?>.</i></p>
+<p><i>ADODB Database Library  (c) 2000-2008 John Lim. All rights reserved. Released under BSD and LGPL, PHP <?php echo PHP_VERSION ?>.</i></p>
 </body>
 </html>

@@ -1,6 +1,6 @@
 <?php
 /*
-V4.94 23 Jan 2007  (c) 2000-2007 John Lim (jlim#natsoft.com.my). All rights reserved.  
+v4.991 16 Oct 2008  (c) 2000-2008 John Lim (jlim#natsoft.com). All rights reserved.  
   Released under both BSD license and Lesser GPL library license. 
   Whenever there is any discrepancy between the two licenses, 
   the BSD license will take precedence.
@@ -37,9 +37,9 @@ class ADODB_ibase extends ADOConnection {
 	var $fmtTimeStamp = "'Y-m-d, H:i:s'";
 	var $concat_operator='||';
 	var $_transactionID;
-	var $metaTablesSQL = "select lower(rdb\$relation_name) from rdb\$relations where rdb\$relation_name not like 'RDB\$%'";
+	var $metaTablesSQL = "select rdb\$relation_name from rdb\$relations where rdb\$relation_name not like 'RDB\$%'";
 	//OPN STUFF start
-	var $metaColumnsSQL = "select lower(a.rdb\$field_name), a.rdb\$null_flag, a.rdb\$default_source, b.rdb\$field_length, b.rdb\$field_scale, b.rdb\$field_sub_type, b.rdb\$field_precision, b.rdb\$field_type from rdb\$relation_fields a, rdb\$fields b where a.rdb\$field_source = b.rdb\$field_name and a.rdb\$relation_name = '%s' order by a.rdb\$field_position asc";
+	var $metaColumnsSQL = "select a.rdb\$field_name, a.rdb\$null_flag, a.rdb\$default_source, b.rdb\$field_length, b.rdb\$field_scale, b.rdb\$field_sub_type, b.rdb\$field_precision, b.rdb\$field_type from rdb\$relation_fields a, rdb\$fields b where a.rdb\$field_source = b.rdb\$field_name and a.rdb\$relation_name = '%s' order by a.rdb\$field_position asc";
 	//OPN STUFF end
 	var $ibasetrans;
 	var $hasGenID = true;
@@ -49,15 +49,14 @@ class ADODB_ibase extends ADOConnection {
 	var $sysDate = "cast('TODAY' as timestamp)";
 	var $sysTimeStamp = "CURRENT_TIMESTAMP"; //"cast('NOW' as timestamp)";
 	var $ansiOuter = true;
-	var $hasAffectedRows = true;
-	var $poorAffectedRows = false;
+	var $hasAffectedRows = false;
+	var $poorAffectedRows = true;
 	var $blobEncodeType = 'C';
 	var $role = false;
 	
 	function ADODB_ibase() 
 	{
 		 if (defined('IBASE_DEFAULT')) $this->ibasetrans = IBASE_DEFAULT;
-		 else $this->ibasetrans = IBASE_WAIT | IBASE_REC_VERSION | IBASE_COMMITTED;
   	}
 	
 	
@@ -139,7 +138,7 @@ class ADODB_ibase extends ADOConnection {
 		if ($this->transOff) return true;
 		$this->transCnt += 1;
 		$this->autoCommit = false;
-	 	$this->_transactionID = ibase_trans($this->ibasetrans, $this->_connectionID); //$this->_connectionID;//
+	 	$this->_transactionID = $this->_connectionID;//ibase_trans($this->ibasetrans, $this->_connectionID);
 		return $this->_transactionID;
 	}
 	
@@ -158,11 +157,6 @@ class ADODB_ibase extends ADOConnection {
 		return $ret;
 	}
 	
-	function _affectedrows()
-	{
-			return ibase_affected_rows($this->_connectionID);
-	}
-  
 	// there are some compat problems with ADODB_COUNTRECS=false and $this->_logsql currently.
 	// it appears that ibase extension cannot support multiple concurrent queryid's
 	function &_Execute($sql,$inputarr=false) 
@@ -258,15 +252,15 @@ class ADODB_ibase extends ADOConnection {
 	
 	function CreateSequence($seqname,$startID=1)
 	{
-		$ok = $this->Execute(("CREATE GENERATOR $seqname" ));
+		$ok = $this->Execute(("INSERT INTO RDB\$GENERATORS (RDB\$GENERATOR_NAME) VALUES (UPPER('$seqname'))" ));
 		if (!$ok) return false;
-		return $this->Execute("SET GENERATOR $seqname TO ".($startID-1));
+		return $this->Execute("SET GENERATOR $seqname TO ".($startID-1).';');
 	}
 	
 	function DropSequence($seqname)
 	{
 		$seqname = strtoupper($seqname);
-		return $this->Execute("DROP GENERATOR $seqname");
+		$this->Execute("delete from RDB\$GENERATORS where RDB\$GENERATOR_NAME='$seqname'");
 	}
 	
 	function GenID($seqname='adodbseq',$startID=1)
@@ -274,7 +268,7 @@ class ADODB_ibase extends ADOConnection {
 		$getnext = ("SELECT Gen_ID($seqname,1) FROM RDB\$DATABASE");
 		$rs = @$this->Execute($getnext);
 		if (!$rs) {
-			$this->Execute(("CREATE GENERATOR $seqname" ));
+			$this->Execute(("INSERT INTO RDB\$GENERATORS (RDB\$GENERATOR_NAME) VALUES (UPPER('$seqname'))" ));
 			$this->Execute("SET GENERATOR $seqname TO ".($startID-1).';');
 			$rs = $this->Execute($getnext);
 		}

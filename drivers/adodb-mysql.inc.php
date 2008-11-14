@@ -1,6 +1,6 @@
 <?php
 /*
-V4.94 23 Jan 2007  (c) 2000-2007 John Lim (jlim#natsoft.com.my). All rights reserved.
+v4.991 16 Oct 2008  (c) 2000-2008 John Lim (jlim#natsoft.com). All rights reserved.
   Released under both BSD license and Lesser GPL library license. 
   Whenever there is any discrepancy between the two licenses, 
   the BSD license will take precedence.
@@ -132,6 +132,8 @@ class ADODB_mysql extends ADOConnection {
 	// if magic quotes disabled, use mysql_real_escape_string()
 	function qstr($s,$magic_quotes=false)
 	{
+		if (is_null($s)) return 'NULL';
+
 		if (!$magic_quotes) {
 		
 			if (ADODB_PHPVER >= 0x4300) {
@@ -184,6 +186,7 @@ class ADODB_mysql extends ADOConnection {
 	// Reference on Last_Insert_ID on the recommended way to simulate sequences
  	var $_genIDSQL = "update %s set id=LAST_INSERT_ID(id+1);";
 	var $_genSeqSQL = "create table %s (id int not null)";
+	var $_genSeqCountSQL = "select count(*) from %s";
 	var $_genSeq2SQL = "insert into %s values (%s)";
 	var $_dropSeqSQL = "drop table %s";
 	
@@ -212,12 +215,16 @@ class ADODB_mysql extends ADOConnection {
 			if ($holdtransOK) $this->_transOK = true; //if the status was ok before reset
 			$u = strtoupper($seqname);
 			$this->Execute(sprintf($this->_genSeqSQL,$seqname));
-			$this->Execute(sprintf($this->_genSeq2SQL,$seqname,$startID-1));
+			$cnt = $this->GetOne(sprintf($this->_genSeqCountSQL,$seqname));
+			if (!$cnt) $this->Execute(sprintf($this->_genSeq2SQL,$seqname,$startID-1));
 			$rs = $this->Execute($getnext);
 		}
-		$this->genID = mysql_insert_id($this->_connectionID);
 		
-		if ($rs) $rs->Close();
+		if ($rs) {
+			$this->genID = mysql_insert_id($this->_connectionID);
+			$rs->Close();
+		} else
+			$this->genID = 0;
 		
 		$this->_logsql = $savelog;
 		return $this->genID;
@@ -441,9 +448,10 @@ class ADODB_mysql extends ADOConnection {
 			$fld->not_null = ($rs->fields[2] != 'YES');
 			$fld->primary_key = ($rs->fields[3] == 'PRI');
 			$fld->auto_increment = (strpos($rs->fields[5], 'auto_increment') !== false);
-			$fld->binary = (strpos($type,'blob') !== false);
-			$fld->unsigned = (strpos($type,'unsigned') !== false);
-				
+			$fld->binary = (strpos($type,'blob') !== false || strpos($type,'binary') !== false);
+			$fld->unsigned = (strpos($type,'unsigned') !== false);	
+			$fld->zerofill = (strpos($type,'zerofill') !== false);
+			
 			if (!$fld->binary) {
 				$d = $rs->fields[4];
 				if ($d != '' && $d != 'NULL') {
@@ -726,6 +734,7 @@ class ADORecordSet_mysql extends ADORecordSet{
 		case 'LONGBLOB': 
 		case 'BLOB':
 		case 'MEDIUMBLOB':
+		case 'BINARY':
 			return !empty($fieldobj->binary) ? 'B' : 'X';
 			
 		case 'YEAR':

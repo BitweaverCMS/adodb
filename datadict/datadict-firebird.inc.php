@@ -1,8 +1,7 @@
 <?php
 
 /**
-  V4.94 23 Jan 2007  (c) 2000-2007 John Lim (jlim#natsoft.com.my). All rights reserved.
-  Modified to work with bitweaver framework - lsces
+  v4.991 16 Oct 2008  (c) 2000-2008 John Lim (jlim#natsoft.com). All rights reserved.
   Released under both BSD license and Lesser GPL library license. 
   Whenever there is any discrepancy between the two licenses, 
   the BSD license will take precedence.
@@ -15,20 +14,18 @@ class ADODB2_firebird extends ADODB_DataDict {
 	
 	var $databaseType = 'firebird';
 	var $seqField = false;
-	var $seqPrefix = 's_';
+	var $seqPrefix = 'gen_';
 	var $blobSize = 40000;	
  	
  	function ActualType($meta)
 	{
 		switch($meta) {
 		case 'C': return 'VARCHAR';
-		case 'XL':
-		case 'X': return 'BLOB SUB_TYPE TEXT'; 
+		case 'XL': return 'VARCHAR(32000)'; 
+		case 'X': return 'VARCHAR(4000)'; 
 		
-		case 'C2': return 'VARCHAR(32765)'; // up to 32K
-		case 'X2': return 'VARCHAR(4096)';
-		case 'V': return 'CHAR';
-		case 'C1': return 'CHAR(1)';
+		case 'C2': return 'VARCHAR'; // up to 32K
+		case 'X2': return 'VARCHAR(4000)';
 		
 		case 'B': return 'BLOB';
 			
@@ -40,7 +37,7 @@ class ADODB2_firebird extends ADODB_DataDict {
 		case 'I1': return 'SMALLINT';
 		case 'I2': return 'SMALLINT';
 		case 'I4': return 'INTEGER';
-		case 'I8': return 'BIGINT';
+		case 'I8': return 'INTEGER';
 		
 		case 'F': return 'DOUBLE PRECISION';
 		case 'N': return 'DECIMAL';
@@ -90,10 +87,9 @@ class ADODB2_firebird extends ADODB_DataDict {
 	{
 		if (strpos($t,'.') !== false) {
 			$tarr = explode('.',$t);
-			return 'DROP GENERATOR '.$tarr[0].'."s_'.$tarr[1].'"';
+			return 'DROP GENERATOR '.$tarr[0].'."gen_'.$tarr[1].'"';
 		}
-		// $t = substr($t, 1); strip backtick - not now used in Firebird datadict
-		return 'DROP GENERATOR s_'.$t;
+		return 'DROP GENERATOR "GEN_'.$t;
 	}
 	
 
@@ -104,41 +100,11 @@ class ADODB2_firebird extends ADODB_DataDict {
 		if (strlen($fdefault)) $suffix .= " DEFAULT $fdefault";
 		if ($fnotnull) $suffix .= ' NOT NULL';
 		if ($fautoinc) $this->seqField = $fname;
-		$fconstraint = preg_replace("/``/", "\"", $fconstraint);
 		if ($fconstraint) $suffix .= ' '.$fconstraint;
 		
 		return $suffix;
 	}
-
-	/**
-	 Generate the SQL to create table. Returns an array of sql strings.
-	*/
-	function CreateTableSQL($tabname, $flds, $tableoptions=array())
-	{
-		list($lines,$pkey,$idxs) = $this->_GenFields($flds, true);
-		// genfields can return FALSE at times
-		if ($lines == null) $lines = array();
-		
-		$taboptions = $this->_Options($tableoptions);
-		$tabname = $this->TableName ($tabname);
-		$sql = $this->_TableSQL($tabname,$lines,$pkey,$taboptions);
-		
-        if ($this->autoIncrement && !isset($taboptions['DROP']))
-		{ $tsql = $this->_Triggers($tabname,$taboptions);
-			foreach($tsql as $s) $sql[] = $s;
-		}
-		
-		if (is_array($idxs)) {
-			foreach($idxs as $idx => $idxdef) {
-				$sql_idxs = $this->CreateIndexSql($idx, $tabname,  $idxdef['cols'], $idxdef['opts']);
-				$sql = array_merge($sql, $sql_idxs);
-			}
-		}
-
-		return $sql;
-	}
 	
-
 /*
 CREATE or replace TRIGGER jaddress_insert
 before insert on jaddress
@@ -159,19 +125,20 @@ end;
 			else $tab = $tab1;
 			$seqField = $this->seqField;
 			$seqname = $this->schema.'.'.$this->seqPrefix.$tab;
-			$trigname = $this->schema.'.t_'.$this->seqPrefix.$tab;
+			$trigname = $this->schema.'.trig_'.$this->seqPrefix.$tab;
 		} else {
 			$seqField = $this->seqField;
 			$seqname = $this->seqPrefix.$tab1;
-			$trigname = 't_'.$seqname;
+			$trigname = 'trig_'.$seqname;
 		}
-
-		if (isset($tableoptions['DROP']))
-		{ $sql[] = "DROP GENERATOR $seqname";
+		if (isset($tableoptions['REPLACE']))
+		{ $sql[] = "DROP GENERATOR \"$seqname\"";
+		  $sql[] = "CREATE GENERATOR \"$seqname\"";
+		  $sql[] = "ALTER TRIGGER \"$trigname\" BEFORE INSERT OR UPDATE AS BEGIN IF ( NEW.$seqField IS NULL OR NEW.$seqField = 0 ) THEN NEW.$seqField = GEN_ID(\"$seqname\", 1); END";
 		}
 		else
-		{ $sql[] = "CREATE GENERATOR $seqname";
-		  $sql[] = "CREATE TRIGGER $trigname FOR $tabname BEFORE INSERT OR UPDATE AS BEGIN IF ( NEW.$seqField IS NULL OR NEW.$seqField = 0 ) THEN NEW.$seqField = GEN_ID($seqname, 1); END";
+		{ $sql[] = "CREATE GENERATOR \"$seqname\"";
+		  $sql[] = "CREATE TRIGGER \"$trigname\" FOR $tabname BEFORE INSERT OR UPDATE AS BEGIN IF ( NEW.$seqField IS NULL OR NEW.$seqField = 0 ) THEN NEW.$seqField = GEN_ID(\"$seqname\", 1); END";
 		}
 		
 		$this->seqField = false;

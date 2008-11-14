@@ -1,6 +1,6 @@
 <?php
 /** 
- * @version V4.90 8 June 2006 (c) 2000-2006 John Lim (jlim#natsoft.com.my). All rights reserved.
+ * @version v4.991 16 Oct 2008 (c) 2000-2008 John Lim (jlim#natsoft.com). All rights reserved.
  * Released under both BSD license and Lesser GPL library license. 
  * Whenever there is any discrepancy between the two licenses, 
  * the BSD license will take precedence. 
@@ -44,7 +44,7 @@
  */
  
 define('ADODB_PEAR',dirname(__FILE__));
-//include_once "PEAR.php";
+include_once "PEAR.php";
 include_once ADODB_PEAR."/adodb-errorpear.inc.php";
 include_once ADODB_PEAR."/adodb.inc.php";
 
@@ -89,8 +89,6 @@ define('DB_GETMODE_ASSOC',   DB_FETCHMODE_ASSOC);
 define('DB_TABLEINFO_ORDER', 1);
 define('DB_TABLEINFO_ORDERTABLE', 2);
 define('DB_TABLEINFO_FULL', 3);
-
-define('DB_PORTABILITY_ALL', 63);
 }
 
 /**
@@ -213,7 +211,7 @@ class DB
 	function isError($value)
 	{
 		if (!is_object($value)) return false;
-		$class = get_class($value);
+		$class = strtolower(get_class($value));
 		return $class == 'pear_error' || is_subclass_of($value, 'pear_error') || 
 				$class == 'db_error' || is_subclass_of($value, 'db_error');
 	}

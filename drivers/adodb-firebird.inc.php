@@ -1,6 +1,6 @@
 <?php
 /* 
-V4.94 23 Jan 2007  (c) 2000-2007 John Lim (jlim#natsoft.com.my). All rights reserved.
+v4.991 16 Oct 2008  (c) 2000-2008 John Lim (jlim#natsoft.com). All rights reserved.
   Released under both BSD license and Lesser GPL library license. 
   Whenever there is any discrepancy between the two licenses, 
   the BSD license will take precedence. 
@@ -24,29 +24,6 @@ class ADODB_firebird extends ADODB_ibase {
 	function ADODB_firebird()
 	{	
 		$this->ADODB_ibase();
-	}
-	
-	function BeginTrans()
-	{	 
-		if ($this->transOff) return true;
-		$this->transCnt += 1;
-		$this->autoCommit = false;
-	 	$this->_transactionID = $this->_connectionID; //ibase_trans($this->ibasetrans, $this->_connectionID);
-		return $this->_transactionID;
-	}
-	
-	function CommitTrans($ok=true) 
-	{ 
-		if (!$ok) return $this->RollbackTrans();
-		if ($this->transOff) return true;
-		if ($this->transCnt) $this->transCnt -= 1;
-		$ret = false;
-		$this->autoCommit = true;
-		if ($this->_transactionID) {
-			$ret = ibase_commit($this->_transactionID);
-		}
-		$this->_transactionID = false;
-		return $ret;
 	}
 	
 	function ServerInfo()

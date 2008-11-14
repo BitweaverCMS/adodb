@@ -1,7 +1,7 @@
 <?php
 
 /* 
-v4.991 16 Oct 2008  (c) 2000-2008 John Lim (jlim#natsoft.com). All rights reserved.
+  v4.991 16 Oct 2008  (c) 2000-2008 John Lim (jlim#natsoft.com). All rights reserved.
   Released under both BSD license and Lesser GPL library license. 
   Whenever there is any discrepancy between the two licenses, 
   the BSD license will take precedence. See License.txt. 
@@ -19,7 +19,7 @@ if (!defined('ADODB_DIR')) die();
 /*
 	MSSQL has moved most performance info to Performance Monitor
 */
-class perf_mssql extends adodb_perf{
+class perf_mssqlnative extends adodb_perf{
 	var $sql1 = 'cast(sql1 as text)';
 	var $createTableSQL = "CREATE TABLE adodb_logsql (
 		  created datetime NOT NULL,
@@ -65,7 +65,7 @@ class perf_mssql extends adodb_perf{
 	);
 	
 	
-	function perf_mssql(&$conn)
+	function perf_mssqlnative(&$conn)
 	{
 		if ($conn->dataProvider == 'odbc') {
 			$this->sql1 = 'sql1';
