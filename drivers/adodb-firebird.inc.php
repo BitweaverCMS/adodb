@@ -126,7 +126,7 @@ class ADODB_firebird extends ADOConnection {
 		if ($this->transOff) return true;
 		$this->transCnt += 1;
 		$this->autoCommit = false;
-	 	$this->_transactionID = fbird_trans($this->ibasetrans, $this->_connectionID); //$this->_connectionID;//
+	 	$this->_transactionID = $this->_connectionID; // fbird_trans($this->ibasetrans, $this->_connectionID); 
 		return $this->_transactionID;
 	}
 	
