@@ -17,7 +17,9 @@ class ADODB2_firebird extends ADODB_DataDict {
 	var $seqField = false;
 	var $seqPrefix = 's_';
 	var $blobSize = 40000;	
-	var $renameColumn = 'ALTER TABLE %s ALTER %s TO %s %s';
+	var $renameColumn = 'ALTER TABLE %s ALTER %s TO %s';
+	var $alterCol = ' ALTER';
+	var $dropCol = ' DROP';
  	
  	function ActualType($meta)
 	{
@@ -176,6 +178,38 @@ end;
 		}
 		
 		$this->seqField = false;
+		return $sql;
+	}
+	
+	/**
+	 * Change the definition of one column
+	 *
+	 * As some DBM's can't do that on there own, you need to supply the complete defintion of the new table,
+	 * to allow, recreating the table and copying the content over to the new table
+	 * @param string $tabname table-name
+	 * @param string $flds column-name and type for the changed column
+	 * @param string $tableflds='' complete defintion of the new table, eg. for postgres, default ''
+	 * @param array/string $tableoptions='' options for the new table see CreateTableSQL, default ''
+	 * @return array with SQL strings
+	 */
+	function AlterColumnSQL($tabname, $flds, $tableflds='',$tableoptions='')
+	{
+		$tabname = $this->TableName ($tabname);
+		$sql = array();
+		list($lines,$pkey,$idxs) = $this->_GenFields($flds);
+		// genfields can return FALSE at times
+		if ($lines == null) $lines = array();
+		$alter = 'ALTER TABLE ' . $tabname . $this->alterCol . ' ';
+		foreach($lines as $v) {
+			$sql[] = $alter . $v;
+		}
+		if (is_array($idxs)) {
+			foreach($idxs as $idx => $idxdef) {
+				$sql_idxs = $this->CreateIndexSql($idx, $tabname, $idxdef['cols'], $idxdef['opts']);
+				$sql = array_merge($sql, $sql_idxs);
+			}
+
+		}
 		return $sql;
 	}
 
