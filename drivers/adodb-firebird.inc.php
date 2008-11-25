@@ -40,6 +40,7 @@ class ADODB_firebird extends ADOConnection {
 	var $poorAffectedRows = false;
 	var $blobEncodeType = 'C';
 	var $role = false;
+	var $nameQuote = '';		/// string to use to quote identifiers and names
 	
 	function ADODB_firebird()
 	{
