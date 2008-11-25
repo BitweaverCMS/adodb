@@ -17,6 +17,7 @@ class ADODB2_firebird extends ADODB_DataDict {
 	var $seqField = false;
 	var $seqPrefix = 's_';
 	var $blobSize = 40000;	
+	var $renameColumn = 'ALTER TABLE %s ALTER %s TO %s %s';
  	
  	function ActualType($meta)
 	{
