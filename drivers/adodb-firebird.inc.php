@@ -15,7 +15,7 @@ if (!defined('ADODB_DIR')) die();
 
 class ADODB_firebird extends ADOConnection {
 	var $databaseType = "firebird";	
-	var $dataProvider = "ibase";
+	var $dataProvider = "firebird";
 	var $replaceQuote = "''"; // string to use to replace quotes
 	var $fbird_datefmt = '%Y-%m-%d'; // For hours,mins,secs change to '%Y-%m-%d %H:%M:%S';
 	var $fmtDate = "'Y-m-d'";
