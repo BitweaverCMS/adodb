@@ -131,13 +131,13 @@ class ADODB2_firebird extends ADODB_DataDict {
 			foreach($tsql as $s) $sql[] = $s;
 		}
 		
-		if (is_array($idxs)) {
+/*		if (is_array($idxs)) {
 			foreach($idxs as $idx => $idxdef) {
 				$sql_idxs = $this->CreateIndexSql($idx, $tabname,  $idxdef['cols'], $idxdef['opts']);
 				$sql = array_merge($sql, $sql_idxs);
 			}
 		}
-
+*/
 		return $sql;
 	}
 	
