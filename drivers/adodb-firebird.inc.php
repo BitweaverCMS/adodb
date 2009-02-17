@@ -680,6 +680,8 @@ class ADODB_firebird extends ADOConnection {
 				break;
 			case 'W':
 			case 'w':
+				// The more accurate way of doing this is with a stored procedure 
+				// See http://wiki.firebirdsql.org/wiki/index.php?page=DATE+Handling+Functions for details
 				$s .= "((extract(yearday from $col) - extract(weekday from $col - 1) + 7) / 7)";
 				break;
 			case 'Q':
