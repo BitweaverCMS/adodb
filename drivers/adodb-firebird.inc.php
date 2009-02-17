@@ -678,6 +678,10 @@ class ADODB_firebird extends ADOConnection {
 			case 'm':
 				$s .= "extract(month from $col)";
 				break;
+			case 'W':
+			case 'w':
+				$s .= "((extract(yearday from $col) - extract(weekday from $col - 1) + 7) / 7)";
+				break;
 			case 'Q':
 			case 'q':
 				$s .= "cast(((extract(month from $col)+2) / 3) as integer)";
