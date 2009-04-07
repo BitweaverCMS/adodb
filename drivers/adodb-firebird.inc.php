@@ -305,7 +305,7 @@ class ADODB_firebird extends ADOConnection {
 	   // there have been reports of problems with nested queries - the code is probably not re-entrant?
 	function _query($sql,$iarr=false)
 	{ 
-
+		if ( !$this->isConnected() ) return false;
 		if (!$this->autoCommit && $this->_transactionID) {
 			$conn = $this->_transactionID;
 			$docommit = false;
@@ -337,7 +337,6 @@ class ADODB_firebird extends ADOConnection {
 			} else $ret = $fn($sql); 
 		} else {
 			$fn = 'fbird_query';
-		
 			if (is_array($iarr)) {	
 				if (ADODB_PHPVER >= 0x4050) { // actually 4.0.4
 					if (sizeof($iarr) == 0) $iarr[0] = ''; // PHP5 compat hack
