@@ -126,7 +126,7 @@ class ADODB_firebird extends ADOConnection {
 		if ($this->transOff) return true;
 		$this->transCnt += 1;
 		$this->autoCommit = false;
-	 	$this->_transactionID = $this->_connectionID; // fbird_trans($this->ibasetrans, $this->_connectionID); 
+	 	$this->_transactionID = fbird_trans($this->ibasetrans, $this->_connectionID); 
 		return $this->_transactionID;
 	}
 	
@@ -147,7 +147,7 @@ class ADODB_firebird extends ADOConnection {
 	
 	function _affectedrows()
 	{
-			return fbird_affected_rows($this->_connectionID);
+			return fbird_affected_rows( $this->_transactionID ? $this->_transactionID : $this->_connectionID );
 	}
   
 	// there are some compat problems with ADODB_COUNTRECS=false and $this->_logsql currently.
