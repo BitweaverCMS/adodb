@@ -2,7 +2,7 @@
 
 
 /*
-v4.991 16 Oct 2008  (c) 2000-2008 John Lim (jlim#natsoft.com). All rights reserved.
+V5.11 5 May 2010   (c) 2000-2010 John Lim (jlim#natsoft.com). All rights reserved.
          Contributed by Ross Smith (adodb@netebb.com). 
   Released under both BSD license and Lesser GPL library license.
   Whenever there is any discrepancy between the two licenses,

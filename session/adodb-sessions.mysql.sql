@@ -1,4 +1,4 @@
--- $CVSHeader: _adodb/session/adodb-sessions.mysql.sql,v 1.1 2005/06/18 00:19:03 bitweaver Exp $
+-- $CVSHeader$
 
 CREATE DATABASE /*! IF NOT EXISTS */ adodb_sessions;
 

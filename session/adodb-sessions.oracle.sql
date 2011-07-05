@@ -1,4 +1,4 @@
--- $CVSHeader: _adodb/session/adodb-sessions.oracle.sql,v 1.1 2005/06/18 00:19:03 bitweaver Exp $
+-- $CVSHeader$
 
 DROP TABLE adodb_sessions;
 

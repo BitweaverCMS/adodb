@@ -1,6 +1,6 @@
 <?php
 /* 
-V4.80 8 Mar 2006  (c) 2000-2008 John Lim (jlim#natsoft.com). All rights reserved.
+V4.80 8 Mar 2006  (c) 2000-2010 John Lim (jlim#natsoft.com). All rights reserved.
   Released under both BSD license and Lesser GPL library license. 
   Whenever there is any discrepancy between the two licenses, 
   the BSD license will take precedence. 
@@ -10,9 +10,8 @@ V4.80 8 Mar 2006  (c) 2000-2008 John Lim (jlim#natsoft.com). All rights reserved
 */
 
 
-if (!defined('E_STRICT')) define('E_STRICT',E_NOTICE);
-#error_reporting(E_ALL|E_STRICT);
-error_reporting(E_ALL);
+//if (!defined('E_STRICT')) define('E_STRICT',0);
+error_reporting(E_ALL|E_STRICT);
 
 $ADODB_FLUSH = true;
 
@@ -135,7 +134,7 @@ FROM `nuke_stories` `t1`, `nuke_authors` `t2`, `nuke_stories_cat` `t3`, `nuke_to
 	$arr = $db->ServerInfo();
 	print_r($arr);
 	echo E_ALL,' ',E_STRICT, "<br>";
-	#$e = error_reporting(E_ALL | E_STRICT);
+	$e = error_reporting(E_ALL | E_STRICT);
 	echo error_reporting(),'<p>';
 	flush();
 	#$db->debug=1;
@@ -484,7 +483,7 @@ GO
 		/*
 		CREATE TABLE PHOTOS
 		(
-		  ID           NUMBER(16),
+		  ID           NUMBER(16) primary key,
 		  PHOTO        BLOB,
 		  DESCRIPTION  VARCHAR2(4000 BYTE),
 		  DESCCLOB     CLOB
@@ -597,7 +596,7 @@ END Adodb;
 		} else {
 			print "<b>Error in using Cursor Variables 1</b><p>";
 		}
-		$rs->Close();
+		if ($rs) $rs->Close();
 		
 		print "<h4>Testing Stored Procedures for oci8</h4>";
 		
@@ -921,6 +920,11 @@ END Adodb;
 	$col = $db->GetCol('select distinct firstname from ADOXYZ order by 1');
 	if (!is_array($col)) Err("Col size is wrong");
 	if (trim($col[0]) != 'Alan' or trim($col[9]) != 'Yat Sun') Err("Col elements wrong");
+	
+	
+	$col = $db->CacheGetCol('select distinct firstname from ADOXYZ order by 1');
+	if (!is_array($col)) Err("Col size is wrong");
+	if (trim($col[0]) != 'Alan' or trim($col[9]) != 'Yat Sun') Err("Col elements wrong");
 
 	$db->debug = true;
 	
@@ -1214,7 +1218,7 @@ END Adodb;
 	
 	echo "<p> GenID test: ";
 	for ($i=1; $i <= 10; $i++) 
-		echo  "($i: ",$val = $db->GenID($db->databaseType.'abcseq6' ,5), ") ";
+		echo  "($i: ",$val = $db->GenID($db->databaseType.'abcseq7' ,5), ") ";
 	if ($val == 0) Err("GenID not supported");
 	
 	if ($val) {
@@ -1436,7 +1440,7 @@ END Adodb;
 	if ($rs) rs2html($rs);
 	else Err("Pivot sql error");
 	
-	$pear = true; //true;
+	$pear = false; //true;
 	$db->debug=false;
 	
 	if ($pear) {
@@ -1710,11 +1714,7 @@ foreach($_GET as $k=>$v)  {
 	//global $$k;
 	$$k = $v;
 }	
-if (strpos(PHP_VERSION,'5') === 0) {
-	//$testaccess=1;
-	//$testmssql = 1;
-	//$testsqlite=1;
-}
+
 ?>
 <html>
 <title>ADODB Testing</title>
@@ -1734,14 +1734,15 @@ Test <a href=test4.php>GetInsertSQL/GetUpdateSQL</a> &nbsp;
 
 include_once('../adodb-time.inc.php');
 if (isset($_GET['time'])) adodb_date_test();
+flush();
 
-include('./testdatabases.inc.php');
+include_once('./testdatabases.inc.php');
 
 echo "<br>vers=",ADOConnection::Version();
 
 
 
 ?>
-<p><i>ADODB Database Library  (c) 2000-2008 John Lim. All rights reserved. Released under BSD and LGPL, PHP <?php echo PHP_VERSION ?>.</i></p>
+<p><i>ADODB Database Library  (c) 2000-2010 John Lim. All rights reserved. Released under BSD and LGPL, PHP <?php echo PHP_VERSION ?>.</i></p>
 </body>
 </html>
