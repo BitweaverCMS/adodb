@@ -1,7 +1,7 @@
 <?php
 
 /**
-  V5.11 5 May 2010   (c) 2000-2010 John Lim (jlim#natsoft.com). All rights reserved.
+  V5.15 19 Jan 2012   (c) 2000-2012 John Lim (jlim#natsoft.com). All rights reserved.
   Released under both BSD license and Lesser GPL library license. 
   Whenever there is any discrepancy between the two licenses, 
   the BSD license will take precedence.
@@ -599,6 +599,7 @@ class ADODB_DataDict {
 			$txt = $flds.$padding;
 			$flds = array();
 			$flds0 = Lens_ParseArgs($txt,',');
+
 			$hasparam = false;
 			foreach($flds0 as $f0) {
 				$f1 = array();
@@ -693,15 +694,8 @@ class ADODB_DataDict {
 				case 'DEFTIMESTAMP': $fdefts = $v; break;
 				// {{{ BITMOD
 				case 'CONSTRAINT':
-					switch( $this->connection->databaseType ) {
-					case 'firebird':
-						$fconstraint = preg_replace( "/`+/", $this->connection->nameQuote, $v );
-						break;
-					default:
-						// strip backticks if not required
-						$fconstraint = preg_replace( "/`+/", $this->connection->nameQuote, $v );
-						break;
-					}
+					 $fconstraint = preg_replace( "/`+/", $this->connection->nameQuote, $v );
+					 break;
 				// }}} BITMOD
 				// let INDEX keyword create a 'very standard' index on column
 				case 'INDEX': $findex = $v; break;
