@@ -1,7 +1,7 @@
 <?php
 
 /**
-  V5.15 19 Jan 2012   (c) 2000-2012 John Lim (jlim#natsoft.com). All rights reserved.
+  V5.17 17 May 2012   (c) 2000-2012 John Lim (jlim#natsoft.com). All rights reserved.
   Released under both BSD license and Lesser GPL library license. 
   Whenever there is any discrepancy between the two licenses, 
   the BSD license will take precedence.
@@ -599,7 +599,6 @@ class ADODB_DataDict {
 			$txt = $flds.$padding;
 			$flds = array();
 			$flds0 = Lens_ParseArgs($txt,',');
-
 			$hasparam = false;
 			foreach($flds0 as $f0) {
 				$f1 = array();
@@ -692,11 +691,7 @@ class ADODB_DataDict {
 				case 'NOQUOTE': $fnoquote = $v; break;
 				case 'DEFDATE': $fdefdate = $v; break;
 				case 'DEFTIMESTAMP': $fdefts = $v; break;
-				// {{{ BITMOD
-				case 'CONSTRAINT':
-					 $fconstraint = preg_replace( "/`+/", $this->connection->nameQuote, $v );
-					 break;
-				// }}} BITMOD
+				case 'CONSTRAINT': $fconstraint = $v; break;
 				// let INDEX keyword create a 'very standard' index on column
 				case 'INDEX': $findex = $v; break;
 				case 'UNIQUE': $funiqueindex = true; break;

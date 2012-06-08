@@ -620,7 +620,7 @@ ul
 
 <h2>ADOdb Library for PHP</h2>
 
-<p>V5.15 19 Jan 2012 (c) 2000-2012 John Lim (jlim#natsoft.com)</p>
+<p>V5.17 17 May 2012 (c) 2000-2012 John Lim (jlim#natsoft.com)</p>
 
 <p><span style='font-size:7.5pt'>This software is dual licensed using BSD-Style
 and LGPL. This means you can use it in compiled proprietary and commercial
@@ -727,7 +727,7 @@ href="#ignoreerrors">IgnoreErrors</a><br>
 Data Dictionary (metadata): <a href="#metadatabases">MetaDatabases</a> <a
 href="#metatables">MetaTables</a> <a href="#metacolumns">MetaColumns</a> <a
 href="#metacolumnames">MetaColumnNames</a> <a href="#metaprimarykeys">MetaPrimaryKeys</a>
-<a href="#metaforeignkeys">MetaForeignKeys</a> <a href="#serverinfo">ServerInfo</a>
+<a href="#metaforeignkeys">MetaForeignKeys</a> <a href="#serverinfo">ServerInfo</a> <a href="#setcharset">SetCharSet</a>
 <br>
 Statistics and Query-Rewriting: <a href="#logsql">LogSQL</a> <a
 href="#fnexecute">fnExecute and fnCacheExecute</a><br>
@@ -5487,6 +5487,14 @@ $db-&gt;MetaPrimaryKeys('dataView');</pre></div>
 'description' element contains the string description of the database. The
 'version' naturally holds the version number (which is also a string).</p>
 
+<p><b>SetCharSet<a name=setcharset id=setcharset></a>($charset)</b> </p>
+
+<p>Set the charset of the connection. The parameter passed in is dependent on the actual database RDBMS. e.g.
+<pre>
+	$DB->SetCharSet('utf8'); // for mysql
+</pre>
+This is database driver specific and only supported for mysql, mysqlt, mysqli, and also postgres7 and later.</p>
+
 <p><b>MetaForeignKeys<a name=metaforeignkeys></a>($table, $owner=false,
 $upper=false)</b> </p>
 
@@ -6140,11 +6148,26 @@ href="http://phplens.com/lens/php-book/optimizing-debugging-php.php">Optimizing
 PHP</a>. </p>
 
 <h2>Change Log<a name=changes></a><a name=changelog></a></h2>
+<p><a name=5.17><b>5.17</b>
+<p>Removed trailing whitespace from adodb-active-record.inc.php.
+<p>odbc: Added support for $database parameter in odbc Connect() function. E.g. $DB->Connect($dsn_without_db, $user, $pwd, $database). Last time
+$database had to be left blank and the $dsn was used to pass in this parameter.
+<p>oci8: Added better empty($rs) error handling to metaindexes().
+<p>oci8: Changed to use newer oci API to support PHP 5.4.
+<p>adodb.inc.php: Changed GetRowAssoc to more generic code that will work in all scenarios.
+<p><a name=5.16><b>5.16 26 March 2012</b>
+<p>mysqli: extra mysqli_next_result() in close() removed. See http://phplens.com/lens/lensforum/msgs.php?id=19100
+<p>datadict-oci8: minor typo in create sequence trigger fixed. See http://phplens.com/lens/lensforum/msgs.php?id=18879.
+<p>security: safe date parsing changes. Does not impact security, these are code optimisations. Thx Saithis.
+<p>postgres, oci8, oci8po, db2oci: Param() function parameters inconsistent with base class.  $type='C' missing. Fixed.
+<p>active-record: locked bug fixed. http://phplens.com/lens/lensforum/msgs.php?phplens_forummsg=new&id=19073
+<p>mysql, mysqli and informix: added MetaProcedures. Metaprocedures allows to retrieve an array list of all procedures in database. http://phplens.com/lens/lensforum/msgs.php?id=18414
+<p>Postgres7: added support for serial data type in MetaColumns().
 <p><a name=5.15><b>5.15 19 Jan 2012</b>
 <p>pdo: fix ErrorMsg() to detect errors correctly. Thx Jens.
 <p>mssqlnative: added another check for $this->fields array exists.
 <p>mssqlnative: bugs in FetchField() fixed. See http://phplens.com/lens/lensforum/msgs.php?id=19024
-<p>DBDate and DBTimeStamp had sql injection bug. Fixed. Thx Santhias
+<p>DBDate and DBTimeStamp had sql injection bug. Fixed. Thx Saithis
 <p>mysql and mysqli: MetaTables() now identifies views and tables correctly.
 <p>Added function adodb_time() to adodb-time.inc.php. Generates current time in unsigned integer format.
 <p><a name=5.14><b>5.14 8 Sep 2011</b>

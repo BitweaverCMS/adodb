@@ -745,7 +745,7 @@ class ADODB_firebird extends ADOConnection {
 		 Class Name: Recordset
 --------------------------------------------------------------------------------------*/
 
-class  ADORecordSet_firebird extends ADORecordSet
+class  ADORecordset_firebird extends ADORecordSet
 {
 
 	var $databaseType = "ibase";
@@ -765,7 +765,7 @@ class  ADORecordSet_firebird extends ADORecordSet
 			fields in a certain query result. If the field offset isn't specified, the next field that wasn't yet retrieved by
 			fetchField() is retrieved.		*/
 
-	function &FetchField($fieldOffset = -1)
+	function FetchField($fieldOffset = -1)
 	{
 			 $fld = new ADOFieldObject;
 			 $ibf = fbird_field_info($this->_queryID,$fieldOffset);

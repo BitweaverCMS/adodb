@@ -18,14 +18,14 @@ V4.81 3 May 2006  (c) 2000-2012 John Lim (jlim#natsoft.com). All rights reserved
   It should not be used as proof of the superiority of one database over the other.
 */ 
  
-$testmssql = true;
+//$testmssql = true;
 //$testvfp = true;
-$testoracle = true;
-$testado = true; 
+//$testoracle = true;
+//$testado = true; 
 $testibase = true;
-$testaccess = true;
-$testmysql = true;
-$testsqlite = true;;
+//$testaccess = true;
+//$testmysql = true;
+//$testsqlite = true;;
 
 set_time_limit(240); // increase timeout
 
