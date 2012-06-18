@@ -164,7 +164,7 @@ class ADODB_firebird extends ADOConnection {
 			$ret =& ADOConnection::_Execute($sql,$inputarr);
 			$ADODB_COUNTRECS = $savecrecs;
 		} else {
-			$ret =& ADOConnection::_Execute($sql,$inputarr);
+			$ret = ADOConnection::_Execute($sql,$inputarr);
 		}
 		return $ret;
 	}
@@ -731,9 +731,9 @@ class ADODB_firebird extends ADOConnection {
 
 		$sql = preg_replace('/^[ \t]*select/i',$str,$sql);
 		if ($secs)
-			$rs =& $this->CacheExecute($secs,$sql,$inputarr);
+			$rs = $this->CacheExecute($secs,$sql,$inputarr);
 		else
-			$rs =& $this->Execute($sql,$inputarr);
+			$rs = $this->Execute($sql,$inputarr);
 
 		return $rs;
 	}
