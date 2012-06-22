@@ -691,6 +691,11 @@ class ADODB_DataDict {
 				case 'NOQUOTE': $fnoquote = $v; break;
 				case 'DEFDATE': $fdefdate = $v; break;
 				case 'DEFTIMESTAMP': $fdefts = $v; break;
+				// {{{ BITMOD
+				case 'CONSTRAINT':
+				   $fconstraint = preg_replace( "/`+/", $this->connection->nameQuote, $v );
+				   break;
+				// }}} BITMOD
 				case 'CONSTRAINT': $fconstraint = $v; break;
 				// let INDEX keyword create a 'very standard' index on column
 				case 'INDEX': $findex = $v; break;
