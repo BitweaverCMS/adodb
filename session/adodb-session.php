@@ -422,7 +422,7 @@ class ADODB_Session {
 	/*!
 	*/
 	function _conn($conn=null) {
-		return $GLOBALS['ADODB_SESS_CONN'];
+		return !empty($GLOBALS['ADODB_SESS_CONN']) ? $GLOBALS['ADODB_SESS_CONN'] : false;
 	}
 
 	/*!
