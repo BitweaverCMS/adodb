@@ -53,7 +53,7 @@ class ADODB2_firebird extends ADODB_DataDict {
 		}
 	}
 	
-	function NameQuote($name = NULL)
+	function NameQuote($name = NULL,$allowBrackets=false)
 	{
 		if (!is_string($name)) {
 			return FALSE;
