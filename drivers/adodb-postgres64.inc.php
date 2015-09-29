@@ -320,7 +320,7 @@ select viewname,'V' from pg_views where viewname like $mask";
 				break;
 			
 			 case 'W':
-				$s .= 'WW';
+				$s .= 'IW';
 				break;
 
 			default:
