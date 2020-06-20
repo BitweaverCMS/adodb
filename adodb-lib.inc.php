@@ -1115,7 +1115,10 @@ function _adodb_debug_execute(&$zthis, $sql, $inputarr)
 	$sqlTxt = str_replace('##1#__^LF', ', ' ,$sqlTxt);
 	*/
 	// check if running from browser or command-line
-	$inBrowser = isset($_SERVER['HTTP_USER_AGENT']);
+	$inBrowser = (!empty($_SERVER['HTTP_USER_AGENT']) && ini_get( 'html_errors' ));
+
+	$outputWrapBegin = ($inBrowser) ? "<hr>\n" : "--------\n";
+	$outputWrapEnd = ($inBrowser) ? "<hr>\n" : "";
 
 	$dbt = $zthis->databaseType;
 	if (isset($zthis->dsnType)) $dbt .= '-'.$zthis->dsnType;
@@ -1126,11 +1129,11 @@ function _adodb_debug_execute(&$zthis, $sql, $inputarr)
 		if ($zthis->debug === -1)
 			ADOConnection::outp( "<br>\n($dbt): ".htmlspecialchars($sqlTxt)." &nbsp; $ss\n<br>\n",false);
 		else if ($zthis->debug !== -99)
-			ADOConnection::outp( "<hr>\n($dbt): ".htmlspecialchars($sqlTxt)." &nbsp; $ss\n<hr>\n",false);
+			ADOConnection::outp( "$outputWrapBegin($dbt): ".htmlspecialchars($sqlTxt)." &nbsp; $ss\n$outputWrapEnd",false);
 	} else {
 		$ss = "\n   ".$ss;
 		if ($zthis->debug !== -99)
-			ADOConnection::outp("-----<hr>\n($dbt): ".$sqlTxt." $ss\n-----<hr>\n",false);
+			ADOConnection::outp("$outputWrapBegin($dbt): ".$sqlTxt." $ss\n$outputWrapEnd",false);
 	}
 
 	$qID = $zthis->_query($sql,$inputarr);
@@ -1145,7 +1148,7 @@ function _adodb_debug_execute(&$zthis, $sql, $inputarr)
 		if($emsg = $zthis->ErrorMsg()) {
 			if ($err = $zthis->ErrorNo()) {
 				if ($zthis->debug === -99)
-					ADOConnection::outp( "<hr>\n($dbt): ".htmlspecialchars($sqlTxt)." &nbsp; $ss\n<hr>\n",false);
+					ADOConnection::outp( "$outputWrapBegin($dbt): ".htmlspecialchars($sqlTxt)." &nbsp; $ss\n$outputWrapEnd",false);
 
 				ADOConnection::outp($err.': '.$emsg);
 			}
@@ -1153,8 +1156,8 @@ function _adodb_debug_execute(&$zthis, $sql, $inputarr)
 	} else if (!$qID) {
 
 		if ($zthis->debug === -99)
-				if ($inBrowser) ADOConnection::outp( "<hr>\n($dbt): ".htmlspecialchars($sqlTxt)." &nbsp; $ss\n<hr>\n",false);
-				else ADOConnection::outp("-----<hr>\n($dbt): ".$sqlTxt."$ss\n-----<hr>\n",false);
+				if ($inBrowser) ADOConnection::outp( "$outputWrapBegin($dbt): ".htmlspecialchars($sqlTxt)." &nbsp; $ss\n$outputWrapEnd",false);
+				else ADOConnection::outp("$outputWrapBegin($dbt): ".$sqlTxt."$ss\n$outputWrapEnd",false);
 
 		ADOConnection::outp($zthis->ErrorNo() .': '. $zthis->ErrorMsg());
 	}
@@ -1168,7 +1171,7 @@ function _adodb_backtrace($printOrArr=true,$levels=9999,$skippy=0,$ishtml=null)
 {
 	if (!function_exists('debug_backtrace')) return '';
 
-	if ($ishtml === null) $html =  (isset($_SERVER['HTTP_USER_AGENT']));
+	if ($ishtml === null) $html =  (!empty($_SERVER['HTTP_USER_AGENT']) && ini_get( 'html_errors' ));
 	else $html = $ishtml;
 
 	$fmt =  ($html) ? "</font><font color=#808080 size=-1> %% line %4d, file: <a href=\"file:/%s\">%s</a></font>" : "%% line %4d, file: %s";
