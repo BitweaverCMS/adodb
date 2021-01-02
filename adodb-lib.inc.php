@@ -6,7 +6,7 @@ global $ADODB_INCLUDED_LIB;
 $ADODB_INCLUDED_LIB = 1;
 
 /*
-  @version   v5.20.17  31-Mar-2020
+  @version   v5.20.19  13-Dec-2020
   @copyright (c) 2000-2013 John Lim (jlim#natsoft.com). All rights reserved.
   @copyright (c) 2014      Damien Regad, Mark Newnham and the ADOdb community
   Released under both BSD license and Lesser GPL library license.
@@ -177,7 +177,7 @@ function _adodb_replace(&$zthis, $table, $fieldArray, $keyCol, $autoQuote, $has_
 				if ($zthis->poorAffectedRows) {
 				/*
 				 The Select count(*) wipes out any errors that the update would have returned.
-				http://phplens.com/lens/lensforum/msgs.php?id=5696
+				PHPLens Issue No: 5696
 				*/
 					if ($zthis->ErrorNo()<>0) return 0;
 
@@ -441,7 +441,7 @@ function _adodb_getcount(&$zthis, $sql,$inputarr=false,$secs2cache=0)
 		}
 		// fix by alexander zhukov, alex#unipack.ru, because count(*) and 'order by' fails
 		// with mssql, access and postgresql. Also a good speedup optimization - skips sorting!
-		// also see http://phplens.com/lens/lensforum/msgs.php?id=12752
+		// also see PHPLens Issue No: 12752
 		$rewritesql = adodb_strip_order_by($rewritesql);
 	}
 
@@ -1115,10 +1115,7 @@ function _adodb_debug_execute(&$zthis, $sql, $inputarr)
 	$sqlTxt = str_replace('##1#__^LF', ', ' ,$sqlTxt);
 	*/
 	// check if running from browser or command-line
-	$inBrowser = (!empty($_SERVER['HTTP_USER_AGENT']) && ini_get( 'html_errors' ));
-
-	$outputWrapBegin = ($inBrowser) ? "<hr>\n" : "--------\n";
-	$outputWrapEnd = ($inBrowser) ? "<hr>\n" : "";
+	$inBrowser = isset($_SERVER['HTTP_USER_AGENT']);
 
 	$dbt = $zthis->databaseType;
 	if (isset($zthis->dsnType)) $dbt .= '-'.$zthis->dsnType;
@@ -1129,11 +1126,11 @@ function _adodb_debug_execute(&$zthis, $sql, $inputarr)
 		if ($zthis->debug === -1)
 			ADOConnection::outp( "<br>\n($dbt): ".htmlspecialchars($sqlTxt)." &nbsp; $ss\n<br>\n",false);
 		else if ($zthis->debug !== -99)
-			ADOConnection::outp( "$outputWrapBegin($dbt): ".htmlspecialchars($sqlTxt)." &nbsp; $ss\n$outputWrapEnd",false);
+			ADOConnection::outp( "<hr>\n($dbt): ".htmlspecialchars($sqlTxt)." &nbsp; $ss\n<hr>\n",false);
 	} else {
 		$ss = "\n   ".$ss;
 		if ($zthis->debug !== -99)
-			ADOConnection::outp("$outputWrapBegin($dbt): ".$sqlTxt." $ss\n$outputWrapEnd",false);
+			ADOConnection::outp("-----<hr>\n($dbt): ".$sqlTxt." $ss\n-----<hr>\n",false);
 	}
 
 	$qID = $zthis->_query($sql,$inputarr);
@@ -1148,7 +1145,7 @@ function _adodb_debug_execute(&$zthis, $sql, $inputarr)
 		if($emsg = $zthis->ErrorMsg()) {
 			if ($err = $zthis->ErrorNo()) {
 				if ($zthis->debug === -99)
-					ADOConnection::outp( "$outputWrapBegin($dbt): ".htmlspecialchars($sqlTxt)." &nbsp; $ss\n$outputWrapEnd",false);
+					ADOConnection::outp( "<hr>\n($dbt): ".htmlspecialchars($sqlTxt)." &nbsp; $ss\n<hr>\n",false);
 
 				ADOConnection::outp($err.': '.$emsg);
 			}
@@ -1156,8 +1153,8 @@ function _adodb_debug_execute(&$zthis, $sql, $inputarr)
 	} else if (!$qID) {
 
 		if ($zthis->debug === -99)
-				if ($inBrowser) ADOConnection::outp( "$outputWrapBegin($dbt): ".htmlspecialchars($sqlTxt)." &nbsp; $ss\n$outputWrapEnd",false);
-				else ADOConnection::outp("$outputWrapBegin($dbt): ".$sqlTxt."$ss\n$outputWrapEnd",false);
+				if ($inBrowser) ADOConnection::outp( "<hr>\n($dbt): ".htmlspecialchars($sqlTxt)." &nbsp; $ss\n<hr>\n",false);
+				else ADOConnection::outp("-----<hr>\n($dbt): ".$sqlTxt."$ss\n-----<hr>\n",false);
 
 		ADOConnection::outp($zthis->ErrorNo() .': '. $zthis->ErrorMsg());
 	}
@@ -1171,7 +1168,7 @@ function _adodb_backtrace($printOrArr=true,$levels=9999,$skippy=0,$ishtml=null)
 {
 	if (!function_exists('debug_backtrace')) return '';
 
-	if ($ishtml === null) $html =  (!empty($_SERVER['HTTP_USER_AGENT']) && ini_get( 'html_errors' ));
+	if ($ishtml === null) $html =  (isset($_SERVER['HTTP_USER_AGENT']));
 	else $html = $ishtml;
 
 	$fmt =  ($html) ? "</font><font color=#808080 size=-1> %% line %4d, file: <a href=\"file:/%s\">%s</a></font>" : "%% line %4d, file: %s";
