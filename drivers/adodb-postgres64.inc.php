@@ -1041,6 +1041,13 @@ class ADORecordSet_postgres64 extends ADORecordSet{
 	 */
 	protected function _prepFields()
 	{
+		// BIT_MOD: PHP 8 emits E_WARNING when pg_fetch_array() is called with an
+		// out-of-range row (e.g. when ADODB_COUNTRECS=false sets _numOfRows=-1).
+		// Guard with pg_num_rows() so we never attempt the fetch out of bounds.
+		if ($this->_numOfRows < 0 && $this->_currentRow >= pg_num_rows($this->_queryID)) {
+			$this->fields = false;
+			return;
+		}
 		$this->fields = @pg_fetch_array($this->_queryID,$this->_currentRow,$this->fetchMode);
 
 		// Check prerequisites and bail early if we do not have what we need.
